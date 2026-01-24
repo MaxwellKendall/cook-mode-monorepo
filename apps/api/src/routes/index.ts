@@ -5,15 +5,15 @@ import { registerUserRoutes } from './users.js';
 import { registerTagRoutes } from './tags.js';
 import { registerSubscriptionRoutes } from './subscriptions.js';
 import { registerJobRoutes } from './jobs.js';
+import { registerPantryRoutes } from './pantry.js';
 
 export async function registerRoutes(fastify: FastifyInstance) {
-  // Health check
-  await fastify.register(registerHealthRoutes, { prefix: '/health' });
-
-  // V1 API routes
-  await fastify.register(registerRecipeRoutes, { prefix: '/v1/recipes' });
-  await fastify.register(registerUserRoutes, { prefix: '/v1/users' });
-  await fastify.register(registerTagRoutes, { prefix: '/v1/tags' });
-  await fastify.register(registerSubscriptionRoutes, { prefix: '/v1/subscriptions' });
-  await fastify.register(registerJobRoutes, { prefix: '/v1/jobs' });
+  // Register all route modules (routes define their own paths)
+  await fastify.register(registerHealthRoutes);
+  await fastify.register(registerRecipeRoutes);
+  await fastify.register(registerUserRoutes);
+  await fastify.register(registerTagRoutes);
+  await fastify.register(registerSubscriptionRoutes);
+  await fastify.register(registerJobRoutes, { prefix: '/jobs' });
+  await fastify.register(registerPantryRoutes);
 }
