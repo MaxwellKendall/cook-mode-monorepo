@@ -1,0 +1,24 @@
+{
+  "name": "@cook-mode/voice-bridge",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@cook-mode/config": "workspace:*",
+    "@cook-mode/db": "workspace:*",
+    "@cook-mode/redis": "workspace:*",
+    "@cook-mode/shared": "workspace:*",
+    "@fastify/cors": "^10.0.2",
+    "fastify": "^5.2.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.7",
+    "pino-pretty": "^13.0.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
