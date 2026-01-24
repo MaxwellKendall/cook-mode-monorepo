@@ -13,7 +13,8 @@
     "@cook-mode/redis": "workspace:*",
     "@cook-mode/shared": "workspace:*",
     "@cook-mode/vector": "workspace:*",
-    "bullmq": "^5.34.8"
+    "bullmq": "^5.34.8",
+    "openai": "^4.77.0"
   },
   "devDependencies": {
     "@types/node": "^22.10.7",

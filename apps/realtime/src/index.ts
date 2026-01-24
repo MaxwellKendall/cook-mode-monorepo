@@ -143,6 +143,26 @@ async function setupRedisSubscriptions() {
     });
   });
 
+  // Pantry/ingredient parsing progress events
+  await pubsub.psubscribe(CHANNELS.patterns.pantry, (channel, message) => {
+    const jobId = channel.split(':')[1];
+    registry.broadcastToJobSubscribers(jobId, {
+      type: 'pantry.progress',
+      jobId,
+      progress: message,
+    });
+  });
+
+  // Meal plan generation progress events
+  await pubsub.psubscribe(CHANNELS.patterns.mealplan, (channel, message) => {
+    const jobId = channel.split(':')[1];
+    registry.broadcastToJobSubscribers(jobId, {
+      type: 'mealplan.progress',
+      jobId,
+      progress: message,
+    });
+  });
+
   // Job events
   await pubsub.psubscribe(CHANNELS.patterns.job, (channel, message) => {
     const jobId = channel.split(':')[1];

@@ -14,6 +14,7 @@ import HomePage from './pages/HomePage'
 import RecipeDetailPage from './pages/RecipeDetailPage'
 import TagsPage from './pages/TagsPage'
 import VoiceRecipeFlowPage from './pages/VoiceRecipeFlowPage'
+import PantryPage from './pages/PantryPage'
 import AppLayout from './components/layout/AppLayout'
 import ProtectedRoute from './components/ProtectedRoute'
 import './App.css'
@@ -54,17 +55,27 @@ const AppRoutes = (): JSX.Element => {
             </ProtectedRoute>
           } 
         />
-        <Route 
-          path="/tags" 
+        <Route
+          path="/tags"
           element={
             <ProtectedRoute>
               <AppLayout>
                 <TagsPage />
               </AppLayout>
             </ProtectedRoute>
-          } 
+          }
         />
-        <Route 
+        <Route
+          path="/pantry"
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <PantryPage />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/:recipeId" 
           element={
             <ProtectedRoute>
