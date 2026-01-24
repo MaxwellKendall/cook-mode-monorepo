@@ -1,0 +1,14 @@
+{
+  "name": "cook-mode-monorepo",
+  "private": true,
+  "scripts": {
+    "dev:apps": "pnpm --filter @cook-mode/api --filter @cook-mode/realtime --filter @cook-mode/worker --filter @cook-mode/voice-bridge --filter @cook-mode/web dev --parallel",
+    "dev:backend": "pnpm --filter @cook-mode/api --filter @cook-mode/realtime --filter @cook-mode/worker --filter @cook-mode/voice-bridge dev --parallel",
+    "build": "pnpm --filter './packages/*' build && pnpm --filter './apps/*' build",
+    "build:packages": "pnpm --filter './packages/*' build",
+    "clean": "rm -rf node_modules packages/*/dist apps/*/dist"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}
