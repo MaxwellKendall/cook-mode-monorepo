@@ -1,32 +1,101 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import React, { JSX } from 'react'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { QueryClientProvider } from '@tanstack/react-query'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+import { queryClient } from './lib/queryClient'
+import { AuthProvider } from './contexts/AuthContext'
+import { SubscriptionProvider } from './contexts/SubscriptionContext'
+import { ToastProvider } from './contexts/ToastContext'
+import LandingPage from './pages/LandingPage'
+import LoginPage from './pages/LoginPage'
+import SearchPage from './pages/SearchPage'
+import AuthCallbackPage from './pages/AuthCallbackPage'
+import HomePage from './pages/HomePage'
+import RecipeDetailPage from './pages/RecipeDetailPage'
+import TagsPage from './pages/TagsPage'
+import VoiceRecipeFlowPage from './pages/VoiceRecipeFlowPage'
+import AppLayout from './components/layout/AppLayout'
+import ProtectedRoute from './components/ProtectedRoute'
+import './App.css'
 
-const queryClient = new QueryClient();
-
-function Home() {
+// App component with routing
+const AppRoutes = (): JSX.Element => {
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">Cook Mode</h1>
-        <p className="text-gray-600">Voice-powered cooking assistant</p>
-        <p className="text-sm text-gray-500 mt-4">
-          API: {import.meta.env.VITE_API_URL || 'http://localhost:3000'}
-        </p>
-      </div>
-    </div>
-  );
+    <Router>
+      <Routes>
+        {/* Auth pages - no layout */}
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/auth/callback" element={<AuthCallbackPage />} />
+        
+        {/* Voice recipe flow - standalone, no layout */}
+        <Route path="/voice" element={<VoiceRecipeFlowPage />} />
+        
+        <Route 
+          path="/" 
+          element={
+            <AppLayout>
+              <HomePage />
+            </AppLayout>
+          } 
+          />
+        
+        {/* Legacy route redirects */}
+        <Route path="/dashboard" element={<Navigate to="/" replace />} />
+        <Route path="/home" element={<Navigate to="/" replace />} />
+        
+        {/* Protected routes with layout */}
+        <Route 
+          path="/search" 
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <SearchPage />
+              </AppLayout>
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/tags" 
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <TagsPage />
+              </AppLayout>
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/:recipeId" 
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <RecipeDetailPage />
+              </AppLayout>
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Catch all - redirect to home */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Router>
+  )
 }
 
-function App() {
+// Main App component with providers
+const App = (): JSX.Element => {
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />} />
-        </Routes>
-      </BrowserRouter>
+      <ToastProvider>
+        <AuthProvider>
+          <SubscriptionProvider>
+            <AppRoutes />
+          </SubscriptionProvider>
+        </AuthProvider>
+      </ToastProvider>
+      <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
-  );
+  )
 }
 
-export default App;
+export default App
