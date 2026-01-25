@@ -13,7 +13,7 @@ export const VoiceTrackPayloadSchema = z.object({
 });
 
 export const IngredientParsePayloadSchema = z.object({
-  imageUrl: z.string().url(),
+  imageUrls: z.array(z.string().url()).min(1),
   userId: z.string().uuid(),
 });
 

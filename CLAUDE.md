@@ -33,10 +33,10 @@ pnpm clean                 # Remove node_modules and dist folders
 pnpm --filter @cook-mode/api dev       # Run specific app in watch mode
 pnpm --filter @cook-mode/api build     # Build specific app
 
-# Database (Drizzle)
-pnpm --filter @cook-mode/db generate   # Create migration files
-pnpm --filter @cook-mode/db migrate    # Run migrations
-pnpm --filter @cook-mode/db studio     # Open Drizzle Studio
+# Database (Supabase migrations)
+pnpm db:link                           # Link to Supabase project (once)
+pnpm db:new <name>                     # Create migration SQL in supabase/migrations/
+pnpm db:migrate                        # Apply migrations (supabase db push)
 ```
 
 ### Browser App (cook-mode-browser)
@@ -110,7 +110,8 @@ Browser App (PWA)
 
 ## Database
 
-Schema defined in `packages/db/src/schema.ts` using Drizzle ORM:
+Schema defined in `packages/db/src/schema.ts` using Drizzle ORM. **Migrations** are managed by Supabase: SQL files in `supabase/migrations/` are applied with `pnpm db:migrate` (supabase db push). Create new migrations with `pnpm db:new <name>`; keep the Drizzle schema in sync when changing tables.
+
 - Recipe tables: recipes, recipeInstructions, recipeNutrients, recipeRelevance, plus junction tables
 - User tables: users, userRecipeSaves, userTags, userRecipeTags, userSubscriptions, voiceSessions
 - Job tables: jobs, jobEvents

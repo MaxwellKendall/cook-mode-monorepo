@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import type { ParsedIngredient } from '../../services/pantryService';
 
 interface IngredientChecklistProps {
@@ -33,6 +33,13 @@ const IngredientChecklist: React.FC<IngredientChecklistProps> = ({
   isSubmitting,
 }) => {
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [newIngredient, setNewIngredient] = useState('');
+  const [manualIngredients, setManualIngredients] = useState<ParsedIngredient[]>([]);
+
+  // Combine parsed and manual ingredients
+  const allIngredients = useMemo(() => {
+    return [...ingredients, ...manualIngredients];
+  }, [ingredients, manualIngredients]);
 
   // Initialize all ingredients as selected
   useEffect(() => {
@@ -53,9 +60,40 @@ const IngredientChecklist: React.FC<IngredientChecklistProps> = ({
 
   const toggleAll = (checked: boolean) => {
     if (checked) {
-      setSelected(new Set(ingredients.map((i) => i.name)));
+      setSelected(new Set(allIngredients.map((i) => i.name)));
     } else {
       setSelected(new Set());
+    }
+  };
+
+  const handleAddIngredient = () => {
+    const trimmed = newIngredient.trim().toLowerCase();
+    if (!trimmed) return;
+
+    // Check if ingredient already exists
+    const exists = allIngredients.some((i) => i.name.toLowerCase() === trimmed);
+    if (exists) {
+      // If it exists but is not selected, select it
+      setSelected((prev) => new Set([...prev, trimmed]));
+      setNewIngredient('');
+      return;
+    }
+
+    const ingredient: ParsedIngredient = {
+      name: trimmed,
+      confidence: 1.0,
+      category: 'other',
+    };
+
+    setManualIngredients((prev) => [...prev, ingredient]);
+    setSelected((prev) => new Set([...prev, trimmed]));
+    setNewIngredient('');
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAddIngredient();
     }
   };
 
@@ -64,7 +102,7 @@ const IngredientChecklist: React.FC<IngredientChecklistProps> = ({
   };
 
   // Group ingredients by category
-  const groupedIngredients = ingredients.reduce(
+  const groupedIngredients = allIngredients.reduce(
     (acc, ingredient) => {
       const category = ingredient.category || 'other';
       if (!acc[category]) {
@@ -81,18 +119,23 @@ const IngredientChecklist: React.FC<IngredientChecklistProps> = ({
     (a, b) => CATEGORY_ORDER.indexOf(a) - CATEGORY_ORDER.indexOf(b)
   );
 
-  const allSelected = selected.size === ingredients.length;
-  const someSelected = selected.size > 0 && selected.size < ingredients.length;
+  const allSelected = selected.size === allIngredients.length;
+  const someSelected = selected.size > 0 && selected.size < allIngredients.length;
 
   return (
     <div className="w-full max-w-2xl mx-auto">
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="text-lg font-semibold text-gray-900">
-                Found {ingredients.length} Ingredients
+                {allIngredients.length} Ingredients
+                {manualIngredients.length > 0 && (
+                  <span className="text-sm font-normal text-gray-500 ml-2">
+                    ({manualIngredients.length} added manually)
+                  </span>
+                )}
               </h3>
               <p className="text-sm text-gray-600">
                 Uncheck any items you don't want to use
@@ -110,6 +153,33 @@ const IngredientChecklist: React.FC<IngredientChecklistProps> = ({
               />
               <span className="text-sm font-medium text-gray-700">Select All</span>
             </label>
+          </div>
+
+          {/* Add Ingredient Input */}
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={newIngredient}
+              onChange={(e) => setNewIngredient(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Add an ingredient..."
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            />
+            <button
+              onClick={handleAddIngredient}
+              disabled={!newIngredient.trim()}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+              Add
+            </button>
           </div>
         </div>
 
@@ -185,7 +255,7 @@ const IngredientChecklist: React.FC<IngredientChecklistProps> = ({
         <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
           <div className="flex items-center justify-between">
             <p className="text-sm text-gray-600">
-              {selected.size} of {ingredients.length} ingredients selected
+              {selected.size} of {allIngredients.length} ingredients selected
             </p>
             <button
               onClick={handleSubmit}

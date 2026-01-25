@@ -1,4 +1,4 @@
-import { pgTable, uuid, varchar, text, boolean, integer, decimal, timestamp, unique, index } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, varchar, text, boolean, integer, decimal, timestamp, unique, index, jsonb } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 // Lookup tables
@@ -230,6 +230,21 @@ export const voiceSessions = pgTable('voice_sessions', {
   startedAtIdx: index('idx_voice_sessions_started_at').on(table.startedAt),
 }));
 
+// Meal plans table
+export const mealPlans = pgTable('meal_plans', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  status: varchar('status', { length: 20 }).notNull().default('active'), // 'active' | 'completed'
+  ingredients: jsonb('ingredients').notNull(), // string[]
+  plan: jsonb('plan').notNull(), // MealPlan object
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  completedAt: timestamp('completed_at', { withTimezone: true }),
+}, (table) => ({
+  userIdIdx: index('idx_meal_plans_user_id').on(table.userId),
+  statusIdx: index('idx_meal_plans_status').on(table.status),
+  createdAtIdx: index('idx_meal_plans_created_at').on(table.createdAt),
+}));
+
 // Jobs table for async processing
 export const jobs = pgTable('jobs', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -357,6 +372,7 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   recipeTags: many(userRecipeTags),
   subscription: one(userSubscriptions),
   voiceSessions: many(voiceSessions),
+  mealPlans: many(mealPlans),
 }));
 
 export const userRecipeSavesRelations = relations(userRecipeSaves, ({ one }) => ({
@@ -411,6 +427,13 @@ export const voiceSessionsRelations = relations(voiceSessions, ({ one }) => ({
   }),
 }));
 
+export const mealPlansRelations = relations(mealPlans, ({ one }) => ({
+  user: one(users, {
+    fields: [mealPlans.userId],
+    references: [users.id],
+  }),
+}));
+
 export const jobsRelations = relations(jobs, ({ many }) => ({
   events: many(jobEvents),
 }));
@@ -434,6 +457,8 @@ export type UserTag = typeof userTags.$inferSelect;
 export type UserRecipeTag = typeof userRecipeTags.$inferSelect;
 export type UserSubscription = typeof userSubscriptions.$inferSelect;
 export type VoiceSession = typeof voiceSessions.$inferSelect;
+export type MealPlan = typeof mealPlans.$inferSelect;
+export type NewMealPlan = typeof mealPlans.$inferInsert;
 export type Job = typeof jobs.$inferSelect;
 export type NewJob = typeof jobs.$inferInsert;
 export type JobEvent = typeof jobEvents.$inferSelect;

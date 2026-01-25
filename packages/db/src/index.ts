@@ -39,3 +39,13 @@ export {
   startVoiceSession,
   endVoiceSession,
 } from './repositories/voice-sessions.js';
+
+export {
+  createMealPlan,
+  getUserMealPlans,
+  getMealPlanById,
+  updateMealPlanStatus,
+  deleteMealPlan,
+  type MealPlanStatus,
+  type CreateMealPlanInput,
+} from './repositories/meal-plans.js';

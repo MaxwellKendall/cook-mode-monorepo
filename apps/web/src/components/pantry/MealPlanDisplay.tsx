@@ -2,9 +2,16 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { MealPlan, MealPlanRecipe } from '../../services/pantryService';
 
+type DisplayMode = 'review' | 'accepted';
+
 interface MealPlanDisplayProps {
   mealPlan: MealPlan;
-  onStartOver: () => void;
+  mode?: DisplayMode;
+  onAccept?: () => void;
+  onRegenerate?: () => void;
+  onStartOver?: () => void;
+  onComplete?: () => void;
+  isAccepting?: boolean;
 }
 
 const MEAL_LABELS = {
@@ -167,24 +174,56 @@ const MealCard: React.FC<MealCardProps> = ({ slot, recipe }) => {
   );
 };
 
-const MealPlanDisplay: React.FC<MealPlanDisplayProps> = ({ mealPlan, onStartOver }) => {
+const MealPlanDisplay: React.FC<MealPlanDisplayProps> = ({
+  mealPlan,
+  mode = 'review',
+  onAccept,
+  onRegenerate,
+  onStartOver,
+  onComplete,
+  isAccepting = false,
+}) => {
+  const isReviewMode = mode === 'review';
+  const isAcceptedMode = mode === 'accepted';
+
   return (
     <div className="w-full max-w-6xl mx-auto">
       {/* Header */}
       <div className="text-center mb-8">
-        <div className="w-16 h-16 mx-auto bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center mb-4">
-          <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
+        <div
+          className={`w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-4 ${
+            isAcceptedMode
+              ? 'bg-gradient-to-br from-green-500 to-emerald-600'
+              : 'bg-gradient-to-br from-blue-500 to-indigo-600'
+          }`}
+        >
+          {isAcceptedMode ? (
+            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          ) : (
+            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+              />
+            </svg>
+          )}
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Your Meal Plan is Ready!</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          {isAcceptedMode ? 'Your Active Meal Plan' : 'Your Meal Plan is Ready!'}
+        </h2>
         <p className="text-gray-600">
-          Here are 3 recipes based on your ingredients
+          {isAcceptedMode
+            ? 'Click on a recipe to start cooking'
+            : 'Review and accept this plan, or regenerate for different options'}
         </p>
       </div>
 
@@ -195,25 +234,106 @@ const MealPlanDisplay: React.FC<MealPlanDisplayProps> = ({ mealPlan, onStartOver
         <MealCard slot="later" recipe={mealPlan.later} />
       </div>
 
-      {/* Actions */}
-      <div className="flex justify-center gap-4">
-        <button
-          onClick={onStartOver}
-          className="px-6 py-3 bg-white border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-        >
-          <span className="flex items-center gap-2">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-              />
-            </svg>
-            Start Over
-          </span>
-        </button>
-      </div>
+      {/* Actions - Review Mode */}
+      {isReviewMode && (
+        <div className="flex flex-col sm:flex-row justify-center gap-4">
+          <button
+            onClick={onRegenerate}
+            disabled={isAccepting}
+            className="px-6 py-3 bg-white border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <span className="flex items-center justify-center gap-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
+              </svg>
+              Regenerate Plan
+            </span>
+          </button>
+          <button
+            onClick={onAccept}
+            disabled={isAccepting}
+            className="px-8 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg font-medium hover:from-green-700 hover:to-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <span className="flex items-center justify-center gap-2">
+              {isAccepting ? (
+                <>
+                  <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
+                  </svg>
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                  Accept Plan
+                </>
+              )}
+            </span>
+          </button>
+        </div>
+      )}
+
+      {/* Actions - Accepted Mode */}
+      {isAcceptedMode && (
+        <div className="flex flex-col sm:flex-row justify-center gap-4">
+          <button
+            onClick={onStartOver}
+            className="px-6 py-3 bg-white border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            <span className="flex items-center justify-center gap-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+              Create New Plan
+            </span>
+          </button>
+          <button
+            onClick={onComplete}
+            className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg font-medium hover:from-green-700 hover:to-emerald-700 transition-colors"
+          >
+            <span className="flex items-center justify-center gap-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              Mark as Completed
+            </span>
+          </button>
+        </div>
+      )}
     </div>
   );
 };

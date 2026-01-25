@@ -17,7 +17,7 @@ export interface VoiceTrackPayload {
 }
 
 export interface IngredientParsePayload {
-  imageUrl: string;
+  imageUrls: string[];
   userId: string;
 }
 

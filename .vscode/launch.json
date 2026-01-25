@@ -1,0 +1,122 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "API Server",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["tsx", "--inspect=9229", "src/index.ts"],
+      "cwd": "${workspaceFolder}/apps/api",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": ["<node_internals>/**"],
+      "env": {
+        "NODE_ENV": "development"
+      }
+    },
+    {
+      "name": "Realtime Gateway",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["tsx", "--inspect=9230", "src/index.ts"],
+      "cwd": "${workspaceFolder}/apps/realtime",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": ["<node_internals>/**"],
+      "env": {
+        "NODE_ENV": "development"
+      }
+    },
+    {
+      "name": "Voice Bridge",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["tsx", "--inspect=9231", "src/index.ts"],
+      "cwd": "${workspaceFolder}/apps/voice-bridge",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": ["<node_internals>/**"],
+      "env": {
+        "NODE_ENV": "development"
+      }
+    },
+    {
+      "name": "Worker",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["tsx", "--inspect=9232", "src/index.ts"],
+      "cwd": "${workspaceFolder}/apps/worker",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": ["<node_internals>/**"],
+      "env": {
+        "NODE_ENV": "development"
+      }
+    },
+    {
+      "name": "Web (Vite)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3003",
+      "webRoot": "${workspaceFolder}/apps/web",
+      "sourceMaps": true,
+      "preLaunchTask": "Start Vite Dev Server"
+    },
+    {
+      "name": "Attach to API (9229)",
+      "type": "node",
+      "request": "attach",
+      "port": 9229,
+      "skipFiles": ["<node_internals>/**"],
+      "restart": true
+    },
+    {
+      "name": "Attach to Realtime (9230)",
+      "type": "node",
+      "request": "attach",
+      "port": 9230,
+      "skipFiles": ["<node_internals>/**"],
+      "restart": true
+    },
+    {
+      "name": "Attach to Voice Bridge (9231)",
+      "type": "node",
+      "request": "attach",
+      "port": 9231,
+      "skipFiles": ["<node_internals>/**"],
+      "restart": true
+    },
+    {
+      "name": "Attach to Worker (9232)",
+      "type": "node",
+      "request": "attach",
+      "port": 9232,
+      "skipFiles": ["<node_internals>/**"],
+      "restart": true
+    }
+  ],
+  "compounds": [
+    {
+      "name": "All Backend Services",
+      "configurations": ["API Server", "Realtime Gateway", "Voice Bridge", "Worker"],
+      "stopAll": true,
+      "presentation": {
+        "group": "compounds",
+        "order": 1
+      }
+    },
+    {
+      "name": "All Services (Backend + Web)",
+      "configurations": ["API Server", "Realtime Gateway", "Voice Bridge", "Worker", "Web (Vite)"],
+      "stopAll": true,
+      "presentation": {
+        "group": "compounds",
+        "order": 2
+      }
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+# Supabase local config. For remote migrations, use: supabase link, then supabase db push.
+# See: https://supabase.com/docs/guides/cli/config
+
+project_id = "cook-mode"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+
+[db]
+port = 54322
+shadow_port = 54320
+
+[studio]
+enabled = true
+port = 54323
