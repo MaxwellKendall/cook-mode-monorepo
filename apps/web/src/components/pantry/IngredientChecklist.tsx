@@ -3,7 +3,7 @@ import type { ParsedIngredient } from '../../services/pantryService';
 
 interface IngredientChecklistProps {
   ingredients: ParsedIngredient[];
-  onSubmit: (selectedIngredients: string[]) => void;
+  onSubmit: (selectedIngredients: string[], additionalInstructions?: string) => void;
   isSubmitting: boolean;
 }
 
@@ -35,6 +35,7 @@ const IngredientChecklist: React.FC<IngredientChecklistProps> = ({
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [newIngredient, setNewIngredient] = useState('');
   const [manualIngredients, setManualIngredients] = useState<ParsedIngredient[]>([]);
+  const [additionalInstructions, setAdditionalInstructions] = useState('');
 
   // Combine parsed and manual ingredients
   const allIngredients = useMemo(() => {
@@ -98,7 +99,7 @@ const IngredientChecklist: React.FC<IngredientChecklistProps> = ({
   };
 
   const handleSubmit = () => {
-    onSubmit(Array.from(selected));
+    onSubmit(Array.from(selected), additionalInstructions.trim() || undefined);
   };
 
   // Group ingredients by category
@@ -253,6 +254,20 @@ const IngredientChecklist: React.FC<IngredientChecklistProps> = ({
 
         {/* Footer */}
         <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+          {/* Additional Instructions */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Additional instructions (optional)
+            </label>
+            <textarea
+              value={additionalInstructions}
+              onChange={(e) => setAdditionalInstructions(e.target.value)}
+              placeholder="e.g., Quick meals only, kid-friendly, no pasta..."
+              rows={2}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm resize-none"
+            />
+          </div>
+
           <div className="flex items-center justify-between">
             <p className="text-sm text-gray-600">
               {selected.size} of {allIngredients.length} ingredients selected

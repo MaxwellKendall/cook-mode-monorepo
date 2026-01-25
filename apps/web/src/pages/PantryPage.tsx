@@ -135,7 +135,7 @@ const PantryPage: React.FC = () => {
   );
 
   const handleGenerateMealPlan = useCallback(
-    async (selected: string[]) => {
+    async (selected: string[], additionalInstructions?: string) => {
       if (!user) {
         navigate('/login');
         return;
@@ -145,7 +145,9 @@ const PantryPage: React.FC = () => {
       setError(null);
 
       try {
-        const jobResult = await generateMealPlan(user.id, selected);
+        const jobResult = await generateMealPlan(user.id, selected, {
+          additionalInstructions,
+        });
 
         if (!jobResult.success || !jobResult.data) {
           throw new Error(jobResult.error || 'Failed to start meal plan generation');

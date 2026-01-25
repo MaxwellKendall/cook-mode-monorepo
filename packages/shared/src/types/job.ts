@@ -25,6 +25,7 @@ export interface MealPlanPreferences {
   cuisinePreferences?: string[];
   dietaryRestrictions?: string[];
   maxCookTime?: number;
+  additionalInstructions?: string;
 }
 
 export interface MealPlanGeneratePayload {

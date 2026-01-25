@@ -37,6 +37,7 @@ interface RecipeSearchResult {
   cookTime?: string | null;
   imageUrl?: string | null;
   fromSaved: boolean;
+  ingredientMatchScore?: number;
 }
 
 const tools: ChatCompletionTool[] = [
@@ -45,7 +46,7 @@ const tools: ChatCompletionTool[] = [
     function: {
       name: 'search_saved_recipes',
       description:
-        'Search the user\'s saved recipe collection. Use this FIRST to find recipes the user already has saved.',
+        'Search the user\'s saved recipe collection. Saved recipes are preferred as a tiebreaker when ingredient match is similar. Results include ingredientMatchScore (0-1) showing how well the recipe uses available ingredients.',
       parameters: {
         type: 'object',
         properties: {
@@ -63,7 +64,7 @@ const tools: ChatCompletionTool[] = [
     function: {
       name: 'search_all_recipes',
       description:
-        'Search the entire recipe database. Use this as a fallback when saved recipes don\'t have good matches.',
+        'Search the entire recipe database for recipes matching available ingredients. Use this to find recipes with better ingredient matches even if not in saved collection.',
       parameters: {
         type: 'object',
         properties: {
@@ -78,7 +79,32 @@ const tools: ChatCompletionTool[] = [
   },
 ];
 
-async function searchSavedRecipes(userId: string, query: string): Promise<RecipeSearchResult[]> {
+// Calculate how well a recipe's ingredients match the available ingredients
+function calculateMatchScore(recipeIngredients: string[], availableIngredients: string[]): number {
+  if (recipeIngredients.length === 0) return 0;
+
+  const availableLower = availableIngredients.map((i) => i.toLowerCase());
+  let matched = 0;
+
+  for (const ingredient of recipeIngredients) {
+    const ingredientLower = ingredient.toLowerCase();
+    if (
+      availableLower.some(
+        (avail) => ingredientLower.includes(avail) || avail.includes(ingredientLower)
+      )
+    ) {
+      matched++;
+    }
+  }
+
+  return matched / recipeIngredients.length;
+}
+
+async function searchSavedRecipes(
+  userId: string,
+  query: string,
+  availableIngredients: string[]
+): Promise<RecipeSearchResult[]> {
   const result = await getUserSavedRecipes(userId, 1, 100, false);
 
   // Simple text matching for saved recipes
@@ -110,17 +136,24 @@ async function searchSavedRecipes(userId: string, query: string): Promise<Recipe
           titleLower.includes(term) || ingredientsLower.includes(term) || summaryLower.includes(term)
       );
     })
-    .slice(0, 10)
-    .map((recipe) => ({
-      id: recipe.id,
-      title: recipe.title,
-      ingredients: parseIngredients(recipe.ingredients),
-      summary: recipe.summary ?? null,
-      prepTime: recipe.prepTime ?? null,
-      cookTime: recipe.cookTime ?? null,
-      imageUrl: recipe.imageUrl ?? null,
-      fromSaved: true,
-    }));
+    .map((recipe) => {
+      const ingredientsList = parseIngredients(recipe.ingredients);
+      const matchScore = calculateMatchScore(ingredientsList, availableIngredients);
+      return {
+        id: recipe.id,
+        title: recipe.title,
+        ingredients: ingredientsList,
+        summary: recipe.summary ?? null,
+        prepTime: recipe.prepTime ?? null,
+        cookTime: recipe.cookTime ?? null,
+        imageUrl: recipe.imageUrl ?? null,
+        fromSaved: true,
+        ingredientMatchScore: matchScore,
+      };
+    })
+    // Sort by ingredient match score (highest first)
+    .sort((a, b) => (b.ingredientMatchScore ?? 0) - (a.ingredientMatchScore ?? 0))
+    .slice(0, 10);
 
   return matches;
 }
@@ -191,16 +224,19 @@ export async function processMealPlanGenerate(job: Job<JobMessage>): Promise<voi
 - "later": A recipe to plan for, good use of remaining ingredients
 
 Guidelines:
-1. ALWAYS search saved recipes first using search_saved_recipes
-2. Prioritize recipes from saved collection when they match well
-3. Only use search_all_recipes if saved recipes don't have good matches
-4. Consider dietary restrictions and preferences if provided
-5. Try to use as many of the available ingredients as possible
-6. Spread ingredient usage across all three meals
+1. Focus on finding recipes that use the available ingredients well
+2. Search BOTH saved recipes and the full database to find best matches
+3. Rank recipes primarily by how many available ingredients they use (check ingredientMatchScore)
+4. When ingredient match is similar, prefer saved recipes as a tiebreaker
+5. A database recipe with 80% ingredient match beats a saved recipe with 30% match
+6. Consider dietary restrictions and preferences if provided
+7. Try to use as many of the available ingredients as possible
+8. Spread ingredient usage across all three meals
 
 ${preferences?.dietaryRestrictions?.length ? `Dietary restrictions: ${preferences.dietaryRestrictions.join(', ')}` : ''}
 ${preferences?.cuisinePreferences?.length ? `Cuisine preferences: ${preferences.cuisinePreferences.join(', ')}` : ''}
 ${preferences?.maxCookTime ? `Max cook time: ${preferences.maxCookTime} minutes` : ''}
+${preferences?.additionalInstructions ? `User's additional instructions: ${preferences.additionalInstructions}` : ''}
 
 After searching, respond with a JSON object containing the final meal plan with structure:
 {
@@ -213,7 +249,7 @@ After searching, respond with a JSON object containing the final meal plan with 
       { role: 'system', content: systemPrompt },
       {
         role: 'user',
-        content: `Available ingredients: ${ingredients.join(', ')}\n\nPlease create a 3-meal plan using these ingredients. Search my saved recipes first.`,
+        content: `Available ingredients: ${ingredients.join(', ')}\n\nPlease create a 3-meal plan using these ingredients. Find recipes that best use these ingredients - check both my saved recipes and the full database.`,
       },
     ];
 
@@ -252,7 +288,7 @@ After searching, respond with a JSON object containing the final meal plan with 
               message: `Searching saved recipes for "${args.query}"...`,
             });
 
-            results = await searchSavedRecipes(userId, args.query);
+            results = await searchSavedRecipes(userId, args.query, ingredients);
 
             // Cache results
             for (const r of results) {
