@@ -1,0 +1,46 @@
+# Dependencies
+node_modules
+
+# Build output (we rebuild in Docker)
+dist
+
+# Development files
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Test files
+coverage
+*.test.ts
+*.spec.ts
+__tests__
+
+# Documentation
+*.md
+!package.json
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs
+
+# Supabase local dev
+supabase/.temp
+supabase/.branches
+
+# Web app (deployed separately via Vercel)
+apps/web
+
+# MCP service (Python, deployed separately)
+services/mcp
