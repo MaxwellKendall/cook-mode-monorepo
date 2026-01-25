@@ -11,7 +11,7 @@ import {
 } from '../schema.js';
 
 export interface RecipeWithRelations extends Recipe {
-  instructions?: { instruction: string; stepNumber: number }[];
+  instructions?: Array<string>;
   nutrients?: {
     calories?: string | null;
     proteinContent?: string | null;
@@ -65,10 +65,7 @@ export async function getRecipeById(recipeId: string): Promise<RecipeWithRelatio
 
   return {
     ...result,
-    instructions: (result.instructions || []).map((i) => ({
-      instruction: i.instruction,
-      stepNumber: i.stepNumber,
-    })),
+    instructions: (result.instructions || []).map((i) => i.instruction),
     nutrients: result.nutrients,
   };
 }
