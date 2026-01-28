@@ -21,6 +21,10 @@ import {
   type SavedMealPlan,
 } from '../services/pantryService';
 
+/**
+ * Pantry Page
+ */
+
 type Tab = 'new' | 'my-plans';
 type FlowState = 'upload' | 'parsing' | 'checklist' | 'generating' | 'review' | 'view-plan';
 
