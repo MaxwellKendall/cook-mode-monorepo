@@ -166,30 +166,6 @@ export const setupSubscriptionEvents = (userId: string, onUpdate: () => void) =>
   return eventSource
 }
 
-// Track session usage when user starts cooking
-export const trackSessionUsage = async (userId: string): Promise<boolean> => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/subscription/track-session/${userId}`, {
-      body: JSON.stringify({}),
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-    })
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
-    }
-
-    const data = await response.json()
-    return data.success
-  } catch (error) {
-    console.error('Error tracking session usage:', error)
-    return false
-  }
-}
-
 // Start a voice session
 export const startVoiceSession = async (userId: string, recipeId?: string): Promise<{ sessionId: string }> => {
   try {
