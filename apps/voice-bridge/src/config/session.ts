@@ -130,6 +130,36 @@ export const getToolsConfig = (): unknown[] => {
         required: ['recipe_id'],
       },
     },
+    {
+      type: 'function',
+      name: 'find_similar_recipes_from_url',
+      description: 'Find recipes similar to a recipe from a web URL using vector similarity',
+      parameters: {
+        type: 'object',
+        properties: {
+          recipe_url: {
+            type: 'string',
+            description: 'The URL of the recipe to find similar recipes for',
+          },
+        },
+        required: ['recipe_url'],
+      },
+    },
+    {
+      type: 'function',
+      name: 'extract_and_store_recipe',
+      description: 'Extract recipe information from a web URL and store it in the database',
+      parameters: {
+        type: 'object',
+        properties: {
+          recipe_url: {
+            type: 'string',
+            description: 'The URL of the webpage containing the recipe to extract',
+          },
+        },
+        required: ['recipe_url'],
+      },
+    },
   ];
 };
 
