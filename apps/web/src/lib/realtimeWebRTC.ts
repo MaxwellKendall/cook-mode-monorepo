@@ -96,27 +96,29 @@ export const createSdpOffer = async (
 };
 
 /**
- * Pure function to send SDP to server
+ * Pure function to send SDP offer to voice-bridge for session creation.
+ * Voice-bridge builds rich instructions + tool definitions and proxies to OpenAI.
  */
 export const sendSdpToServer = async (
   sdp: string,
   recipe: any,
-  baseUrl: string
 ): Promise<string> => {
-  const response = await fetch(`${baseUrl}/realtime/session`, {
+  const voiceBridgeUrl = import.meta.env?.VITE_VOICE_BRIDGE_URL || 'http://localhost:3002';
+
+  const response = await fetch(`${voiceBridgeUrl}/session`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ sdp, recipe }),
+    body: JSON.stringify({ sdpOffer: sdp, recipe }),
   });
 
   if (!response.ok) {
     throw new Error(`Failed to create session: ${response.status}`);
   }
 
-  const { sdp: answerSdp } = await response.json();
-  return answerSdp;
+  const { sdpAnswer } = await response.json();
+  return sdpAnswer;
 };
 
 /**
@@ -231,8 +233,6 @@ export const cleanupConnection = async (
 export const createRealtimeConnection = async (
   config: RealtimeWebRTCConfig
 ): Promise<RealtimeConnection> => {
-  const baseUrl = import.meta.env?.VITE_API_URL || 'http://localhost:8000';
-  
   // Create connection components
   const peerConnection = createPeerConnection();
   const audioElement = createAudioElement();
@@ -289,7 +289,7 @@ export const createRealtimeConnection = async (
   
   // Create SDP offer and send to server
   const offer = await createSdpOffer(peerConnection);
-  const answerSdp = await sendSdpToServer(offer.sdp!, config.recipe, baseUrl);
+  const answerSdp = await sendSdpToServer(offer.sdp!, config.recipe);
   await setRemoteDescription(peerConnection, answerSdp);
   
   // Build connection state
