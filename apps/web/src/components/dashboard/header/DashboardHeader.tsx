@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faHome, faTags } from '@fortawesome/free-solid-svg-icons'
+import { faHome, faTags, faUtensils } from '@fortawesome/free-solid-svg-icons'
 import { createCustomerPortalSession } from '../../../services/subscriptionService'
 
 interface DashboardHeaderProps {
@@ -64,7 +64,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         {/* Left Side - Navigation */}
         <div className="flex items-center space-x-2">
           <button
-            onClick={() => navigate('/home')}
+            onClick={() => navigate('/')}
             className="p-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
             title="Go to Dashboard"
           >
@@ -74,13 +74,23 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             />
           </button>
           <button
+            onClick={() => navigate('/pantry')}
+            className="p-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
+            title="Pantry Planner"
+          >
+            <FontAwesomeIcon
+              icon={faUtensils}
+              className="w-6 h-6 sm:w-7 sm:h-7"
+            />
+          </button>
+          <button
             onClick={() => navigate('/tags')}
             className="p-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
             title="My Collections"
           >
-            <FontAwesomeIcon 
-              icon={faTags} 
-              className="w-6 h-6 sm:w-7 sm:h-7" 
+            <FontAwesomeIcon
+              icon={faTags}
+              className="w-6 h-6 sm:w-7 sm:h-7"
             />
           </button>
         </div>

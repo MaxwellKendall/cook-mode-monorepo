@@ -1,12 +1,15 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { usePostHog } from '@posthog/react';
+import { POSTHOG_EVENTS } from '../lib/posthogEvents';
 import { supabase } from '../lib/supabase';
 import ImageUpload from '../components/pantry/ImageUpload';
 import IngredientChecklist from '../components/pantry/IngredientChecklist';
 import MealPlanDisplay from '../components/pantry/MealPlanDisplay';
 import MyPlans from '../components/pantry/MyPlans';
 import ActivePlanView from '../components/pantry/ActivePlanView';
+import LoginPrompt from '../components/auth/LoginPrompt';
 import { useJobProgress } from '../hooks/useJobProgress';
 import {
   parseIngredients,
@@ -28,9 +31,32 @@ import {
 type Tab = 'new' | 'my-plans';
 type FlowState = 'upload' | 'parsing' | 'checklist' | 'generating' | 'review' | 'view-plan';
 
+// Generate or retrieve an anonymous session ID for non-auth users
+function getAnonymousSessionId(): string {
+  const key = 'cook-mode-anon-session';
+  let sessionId = localStorage.getItem(key);
+  if (!sessionId) {
+    sessionId = crypto.randomUUID();
+    localStorage.setItem(key, sessionId);
+  }
+  return sessionId;
+}
+
 const PantryPage: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const posthog = usePostHog();
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+
+  // Anonymous session for non-auth users
+  const anonymousSessionId = user ? undefined : getAnonymousSessionId();
+
+  // Track page view
+  useEffect(() => {
+    posthog?.capture(POSTHOG_EVENTS.pantryPageViewed, {
+      isAuthenticated: !!user,
+    });
+  }, [posthog, user]);
 
   // Tab state
   const [activeTab, setActiveTab] = useState<Tab>('new');
@@ -58,6 +84,9 @@ const PantryPage: React.FC = () => {
       setIngredients(parsed);
       setFlowState('checklist');
       setParseJobId(null);
+      posthog?.capture(POSTHOG_EVENTS.ingredientsParsed, {
+        ingredientCount: parsed.length,
+      });
     },
     onError: (err) => {
       setError(err);
@@ -72,6 +101,7 @@ const PantryPage: React.FC = () => {
       setMealPlan(result as MealPlan);
       setFlowState('review');
       setMealPlanJobId(null);
+      posthog?.capture(POSTHOG_EVENTS.mealPlanGenerated);
     },
     onError: (err) => {
       setError(err);
@@ -79,6 +109,13 @@ const PantryPage: React.FC = () => {
       setMealPlanJobId(null);
     },
   });
+
+  // Auto-save meal plan after anonymous user authenticates
+  useEffect(() => {
+    if (user && mealPlan && flowState === 'review') {
+      doSavePlan(user.id);
+    }
+  }, [user]); // intentionally only depend on user to trigger on auth change
 
   // Load saved plans when switching to my-plans tab
   useEffect(() => {
@@ -104,24 +141,30 @@ const PantryPage: React.FC = () => {
 
   const handleImageUpload = useCallback(
     async (files: File[]) => {
-      if (!user) {
-        navigate('/login');
-        return;
-      }
+      const uploaderId = user?.id || `anonymous/${anonymousSessionId}`;
 
       setIsUploading(true);
       setError(null);
 
       try {
         // Upload all images to Supabase storage
-        const uploadResult = await uploadPantryImages(files, user.id, supabase);
+        const uploadResult = await uploadPantryImages(files, uploaderId, supabase);
 
         if ('error' in uploadResult) {
           throw new Error(uploadResult.error);
         }
 
+        posthog?.capture(POSTHOG_EVENTS.pantryPhotoUploaded, {
+          imageCount: files.length,
+          isAuthenticated: !!user,
+        });
+
         // Start parsing job with all image URLs
-        const jobResult = await parseIngredients(uploadResult.urls, user.id);
+        const jobResult = await parseIngredients(
+          uploadResult.urls,
+          user?.id,
+          anonymousSessionId
+        );
 
         if (!jobResult.success || !jobResult.data) {
           throw new Error(jobResult.error || 'Failed to start parsing');
@@ -135,23 +178,21 @@ const PantryPage: React.FC = () => {
         setIsUploading(false);
       }
     },
-    [user, navigate]
+    [user, anonymousSessionId, posthog]
   );
 
   const handleGenerateMealPlan = useCallback(
     async (selected: string[], additionalInstructions?: string) => {
-      if (!user) {
-        navigate('/login');
-        return;
-      }
-
       setSelectedIngredients(selected);
       setError(null);
 
       try {
-        const jobResult = await generateMealPlan(user.id, selected, {
-          additionalInstructions,
-        });
+        const jobResult = await generateMealPlan(
+          selected,
+          { additionalInstructions },
+          user?.id,
+          anonymousSessionId
+        );
 
         if (!jobResult.success || !jobResult.data) {
           throw new Error(jobResult.error || 'Failed to start meal plan generation');
@@ -163,21 +204,25 @@ const PantryPage: React.FC = () => {
         setError(err instanceof Error ? err.message : 'Failed to generate meal plan');
       }
     },
-    [user, navigate]
+    [user, anonymousSessionId]
   );
 
-  const handleAcceptPlan = useCallback(async () => {
-    if (!user || !mealPlan) return;
+  const doSavePlan = useCallback(async (userId: string) => {
+    if (!mealPlan) return;
 
     setIsAccepting(true);
     setError(null);
 
     try {
-      const result = await saveMealPlan(user.id, selectedIngredients, mealPlan);
+      const result = await saveMealPlan(userId, selectedIngredients, mealPlan);
 
       if (!result.success || !result.data) {
         throw new Error(result.error || 'Failed to save meal plan');
       }
+
+      posthog?.capture(POSTHOG_EVENTS.mealPlanSaved, {
+        planId: result.data.id,
+      });
 
       // Switch to my plans tab and show the new plan
       setSavedPlans((prev) => [result.data!, ...prev]);
@@ -194,7 +239,23 @@ const PantryPage: React.FC = () => {
     } finally {
       setIsAccepting(false);
     }
-  }, [user, mealPlan, selectedIngredients]);
+  }, [mealPlan, selectedIngredients, posthog]);
+
+  const handleAcceptPlan = useCallback(async () => {
+    if (!mealPlan) return;
+
+    posthog?.capture(POSTHOG_EVENTS.mealPlanAccepted, {
+      isAuthenticated: !!user,
+    });
+
+    if (!user) {
+      // Anonymous user - show login prompt, save after auth
+      setShowLoginPrompt(true);
+      return;
+    }
+
+    await doSavePlan(user.id);
+  }, [user, mealPlan, doSavePlan, posthog]);
 
   const handleRegenerate = useCallback(() => {
     // Go back to checklist to generate again
@@ -270,34 +331,6 @@ const PantryPage: React.FC = () => {
     loadSavedPlans();
   }, []);
 
-  // Redirect to login if not authenticated
-  if (!user) {
-    return (
-      <div className="max-w-4xl mx-auto px-4 py-16 text-center">
-        <div className="w-20 h-20 mx-auto bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mb-6">
-          <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-            />
-          </svg>
-        </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">Sign in to use Pantry Planner</h2>
-        <p className="text-gray-600 mb-8">
-          Create an account to upload photos and get personalized meal plans
-        </p>
-        <button
-          onClick={() => navigate('/login')}
-          className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all"
-        >
-          Sign In
-        </button>
-      </div>
-    );
-  }
-
   // Show selected plan view
   if (activeTab === 'my-plans' && selectedPlan && flowState === 'view-plan') {
     return (
@@ -323,37 +356,39 @@ const PantryPage: React.FC = () => {
         </p>
       </div>
 
-      {/* Tabs */}
-      <div className="flex justify-center mb-8">
-        <div className="inline-flex bg-gray-100 rounded-lg p-1">
-          <button
-            onClick={() => {
-              setActiveTab('new');
-              setSelectedPlan(null);
-            }}
-            className={`px-6 py-2 rounded-lg font-medium transition-colors ${
-              activeTab === 'new'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            New Plan
-          </button>
-          <button
-            onClick={() => {
-              setActiveTab('my-plans');
-              setSelectedPlan(null);
-            }}
-            className={`px-6 py-2 rounded-lg font-medium transition-colors ${
-              activeTab === 'my-plans'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            My Plans
-          </button>
+      {/* Tabs - only show for authenticated users */}
+      {user && (
+        <div className="flex justify-center mb-8">
+          <div className="inline-flex bg-gray-100 rounded-lg p-1">
+            <button
+              onClick={() => {
+                setActiveTab('new');
+                setSelectedPlan(null);
+              }}
+              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+                activeTab === 'new'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              New Plan
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab('my-plans');
+                setSelectedPlan(null);
+              }}
+              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+                activeTab === 'my-plans'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              My Plans
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Error Display */}
       {error && activeTab === 'new' && (
@@ -401,7 +436,7 @@ const PantryPage: React.FC = () => {
           {/* Progress Steps */}
           <div className="max-w-2xl mx-auto mb-12">
             <div className="flex items-center justify-between">
-              {['Upload Photos', 'Review Ingredients', 'Get Meal Plan'].map((step, index) => {
+              {['Add Ingredients', 'Review Ingredients', 'Get Meal Plan'].map((step, index) => {
                 const stepNum = index + 1;
                 const isActive =
                   (stepNum === 1 && ['upload', 'parsing'].includes(flowState)) ||
@@ -461,7 +496,23 @@ const PantryPage: React.FC = () => {
           </div>
 
           {/* Flow States */}
-          {flowState === 'upload' && <ImageUpload onUpload={handleImageUpload} isUploading={isUploading} />}
+          {flowState === 'upload' && (
+            <div>
+              <ImageUpload onUpload={handleImageUpload} isUploading={isUploading} />
+              <div className="text-center mt-6">
+                <button
+                  onClick={() => {
+                    posthog?.capture(POSTHOG_EVENTS.pantryTypeIngredientsClicked);
+                    setFlowState('checklist');
+                    setIngredients([]);
+                  }}
+                  className="text-blue-600 hover:text-blue-700 font-medium text-sm underline underline-offset-2"
+                >
+                  No photo? Type what you have instead
+                </button>
+              </div>
+            </div>
+          )}
 
           {flowState === 'parsing' && (
             <div className="max-w-2xl mx-auto text-center py-16">
@@ -493,7 +544,7 @@ const PantryPage: React.FC = () => {
             </div>
           )}
 
-          {flowState === 'checklist' && ingredients.length > 0 && (
+          {flowState === 'checklist' && (
             <IngredientChecklist
               ingredients={ingredients}
               onSubmit={handleGenerateMealPlan}
@@ -543,6 +594,19 @@ const PantryPage: React.FC = () => {
             />
           )}
         </>
+      )}
+
+      {/* Login Prompt for anonymous users trying to save */}
+      {showLoginPrompt && (
+        <LoginPrompt
+          message="Sign in to save this meal plan to your account"
+          onClose={() => setShowLoginPrompt(false)}
+          onAuthenticated={() => {
+            setShowLoginPrompt(false);
+            // After auth, user state will update via context
+            // The plan is still in component state, so we save it
+          }}
+        />
       )}
     </div>
   );

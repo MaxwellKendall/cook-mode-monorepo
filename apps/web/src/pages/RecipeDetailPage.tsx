@@ -13,8 +13,8 @@ const RecipeDetailPage: React.FC = () => {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const { showToast } = useToast()
-  
-  // React Query hook replaces all state management
+
+  // React Query hook - userId is optional for anonymous users
   const { data: recipe, isLoading, error } = useRecipe(recipeId, user?.id)
 
   // Handle upgrade celebration
@@ -24,20 +24,12 @@ const RecipeDetailPage: React.FC = () => {
       showToast(
         '🎉 Welcome to Pro! You now have unlimited cooking sessions!',
         'success',
-        8000 // Show for 8 seconds to celebrate
+        8000
       )
-      // Remove the query parameter from URL
       searchParams.delete('celebrate')
       setSearchParams(searchParams, { replace: true })
     }
   }, [searchParams, setSearchParams, showToast])
-
-  // Redirect if not authenticated
-  useEffect(() => {
-    if (!user) {
-      navigate('/')
-    }
-  }, [user, navigate])
 
   // Redirect if no recipeId
   useEffect(() => {
@@ -50,22 +42,18 @@ const RecipeDetailPage: React.FC = () => {
     navigate('/')
   }
 
-  // Early return for missing user
-  if (!user || !recipeId) {
+  if (!recipeId) {
     return null
   }
 
-  // Loading state
   if (isLoading) {
     return <LoadingState message="Loading recipe..." />
   }
 
-  // Error state
   if (error) {
     return <ErrorState error={error.message} onBack={handleBackToHome} />
   }
 
-  // Not found state
   if (!recipe) {
     return <ErrorState error="Recipe not found" onBack={handleBackToHome} />
   }

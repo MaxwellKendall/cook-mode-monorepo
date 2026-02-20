@@ -202,20 +202,26 @@ export async function processMealPlanGenerate(job: Job<JobMessage>): Promise<voi
   const payload = operation.payload as MealPlanGeneratePayload;
   const { userId, ingredients, preferences } = payload;
 
+  const isAnonymous = !userId;
   const recipeCache = new Map<string, RecipeSearchResult>();
 
   try {
-    // Stage 1: Searching saved recipes
+    // Stage 1: Searching recipes
     await publishProgress(jobId, {
       jobId,
       stage: 'searching_saved',
       progress: 10,
-      message: 'Searching your saved recipes...',
+      message: isAnonymous ? 'Searching recipes...' : 'Searching your saved recipes...',
     });
 
     await job.updateProgress(10);
 
     const client = getOpenAI();
+
+    // Use different tools for anonymous vs authenticated users
+    const availableTools = isAnonymous
+      ? tools.filter(t => t.function.name !== 'search_saved_recipes')
+      : tools;
 
     const systemPrompt = `You are a meal planning assistant. Based on the user's available ingredients, find and recommend 3 recipes organized as a meal plan:
 
@@ -263,7 +269,7 @@ After searching, respond with a JSON object containing the final meal plan with 
       const response = await client.chat.completions.create({
         model: 'gpt-4o',
         messages,
-        tools,
+        tools: availableTools,
         tool_choice: 'auto',
       });
 
@@ -280,7 +286,7 @@ After searching, respond with a JSON object containing the final meal plan with 
           const args = JSON.parse(toolCall.function.arguments);
           let results: RecipeSearchResult[] = [];
 
-          if (toolCall.function.name === 'search_saved_recipes') {
+          if (toolCall.function.name === 'search_saved_recipes' && userId) {
             await publishProgress(jobId, {
               jobId,
               stage: 'searching_saved',

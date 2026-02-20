@@ -20,9 +20,8 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   const [isFeedbackOpen, setIsFeedbackOpen] = React.useState(false)
 
   const handleSearchResults = (recipes: any[]) => {
-    // Navigate to home page with search results
-    navigate('/home', { 
-      state: { 
+    navigate('/', {
+      state: {
         searchResults: recipes,
         searchQuery: 'search'
       }
@@ -30,8 +29,47 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   }
 
   if (!user) {
-    // If no user, just render children (for landing page)
-    return <>{children}</>
+    // Anonymous users get a minimal layout with search bar
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        {/* Minimal header for anonymous users */}
+        <div className="bg-white border-b border-gray-200 px-4 sm:px-6 py-4">
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => navigate('/')}
+              className="flex items-center space-x-2"
+            >
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+              </div>
+              <span className="text-lg font-semibold text-gray-900">Cook Mode</span>
+            </button>
+            <button
+              onClick={() => navigate('/login')}
+              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+            >
+              Sign In
+            </button>
+          </div>
+        </div>
+
+        <main className="flex-1 px-4 sm:px-6 lg:px-8 py-6">
+          <div className="mb-6">
+            <div className="flex justify-center">
+              <div className="w-full max-w-lg">
+                <HeaderSearchBar
+                  userId={undefined}
+                  onSearchResults={handleSearchResults}
+                />
+              </div>
+            </div>
+          </div>
+          {children}
+        </main>
+      </div>
+    )
   }
 
   return (

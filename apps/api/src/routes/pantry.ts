@@ -16,9 +16,9 @@ import {
 } from '@cook-mode/db';
 
 export async function registerPantryRoutes(fastify: FastifyInstance) {
-  // Parse ingredients from images (supports multiple images)
+  // Parse ingredients from images (supports multiple images, anonymous or authenticated)
   fastify.post<{
-    Body: { imageUrls: string[]; userId: string };
+    Body: { imageUrls: string[]; userId?: string; anonymousSessionId?: string };
   }>('/pantry/parse', async (request, reply) => {
     try {
       const parsed = IngredientParsePayloadSchema.safeParse(request.body);
@@ -28,6 +28,15 @@ export async function registerPantryRoutes(fastify: FastifyInstance) {
           success: false,
           error: 'Invalid request',
           details: parsed.error.errors,
+        });
+        return;
+      }
+
+      // Require either userId or anonymousSessionId
+      if (!parsed.data.userId && !parsed.data.anonymousSessionId) {
+        reply.status(400).send({
+          success: false,
+          error: 'Either userId or anonymousSessionId is required',
         });
         return;
       }
@@ -60,15 +69,17 @@ export async function registerPantryRoutes(fastify: FastifyInstance) {
     }
   });
 
-  // Generate meal plan from ingredients
+  // Generate meal plan from ingredients (anonymous or authenticated)
   fastify.post<{
     Body: {
-      userId: string;
+      userId?: string;
+      anonymousSessionId?: string;
       ingredients: string[];
       preferences?: {
         cuisinePreferences?: string[];
         dietaryRestrictions?: string[];
         maxCookTime?: number;
+        additionalInstructions?: string;
       };
     };
   }>('/pantry/mealplan', async (request, reply) => {
@@ -80,6 +91,15 @@ export async function registerPantryRoutes(fastify: FastifyInstance) {
           success: false,
           error: 'Invalid request',
           details: parsed.error.errors,
+        });
+        return;
+      }
+
+      // Require either userId or anonymousSessionId
+      if (!parsed.data.userId && !parsed.data.anonymousSessionId) {
+        reply.status(400).send({
+          success: false,
+          error: 'Either userId or anonymousSessionId is required',
         });
         return;
       }

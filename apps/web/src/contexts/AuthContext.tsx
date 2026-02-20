@@ -37,7 +37,6 @@ interface AuthProviderProps {
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null)
-  console.log('heyyyo', { user })
   const [loading, setLoading] = useState(true)
   const [session, setSession] = useState<Session | null>(null)
   const posthog = usePostHog()

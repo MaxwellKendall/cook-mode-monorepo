@@ -3,123 +3,56 @@ import { useNavigate } from 'react-router-dom'
 import { usePostHog } from '@posthog/react'
 import { POSTHOG_EVENTS } from '../lib/posthogEvents'
 
-// Feature flag for A/B testing (0-4 to select which hero copy option to use)
-const HERO_COPY_VARIANT = 0
-// Landing page hero content constants for A/B testing
-// Use | as delimiter to mark which part of the header should have the gradient
-interface ValueProposition {
-  title: string
-  description: string
-  action: string
-}
-
-interface HeroCopy {
-  headline: string
-  description: string
-  valueLine: string
-  ctaText: string
-}
-
-
-const HERO_COPY_OPTIONS: HeroCopy[] = [
-  {
-    headline: "Follow every recipe with | confidence",
-    description: "Need substitutions? Dont know a technique? Questions? All answered.",
-    valueLine: "Hands-free guidance while you cook. Import, organize, and discover your recipes.",
-    ctaText: "Try Cook Mode free →"
-  },
-  {
-    headline: "Your recipes, | spoken aloud",
-    description: "Import recipes from anywhere. Get voice reminders while you cook.",
-    valueLine: "Cook clean, focused, and hands-free",
-    ctaText: "Try it free →"
-  },
-  {
-    headline: "Cook without | touching your phone",
-    description: "Voice guidance for the recipes you already use. Adapt on the fly based on what you have.",
-    valueLine: "Hands-free cooking that works",
-    ctaText: "Start cooking →"
-  },
-  {
-    headline: "Voice reminders | while you cook",
-    description: "Hands-free cooking with recipes you already love. No installation required.",
-    valueLine: "Your recipes, your way, hands-free",
-    ctaText: "Get started →"
-  },
-  {
-    headline: "Stop touching | your phone",
-    description: "Get reminders of ingredients, amounts, and next steps. Import recipes from anywhere.",
-    valueLine: "Cook with your voice, not your hands",
-    ctaText: "Try hands-free cooking →"
-  }
-]
-
-// All value propositions (static across all variants)
-const VALUE_PROPOSITIONS: ValueProposition[] = [
-  {
-    title: "Adapt on the fly",
-    description: "Switch up ingredients. Scale with confidence.",
-    action: "Adapt your recipes →"
-  },
-  {
-    title: "Discover recipes using natural language",
-    description: "Just type what you're looking for: \"easy chicken dinner\"",
-    action: "Search recipes →"
-  },
-  {
-    title: "Your personal cookbook",
-    description: "Import recipes from anywhere on the web. Organize them into collections using hashtags.",
-    action: "Save your recipes →"
-  }
-]
-
-// How it works steps
-const HOW_IT_WORKS_STEPS = [
-  "Import a recipe you already use by pasting a URL in the search bar",
-  "Cook hands-free with voice guidance",
-  "Ask questions and adapt as you go"
-]
-
-// Example questions users can ask
-const EXAMPLE_QUESTIONS = [
-  "Can I substitute this ingredient?",
-  "How can I adapt this recipe for my diet?",
-  "Can you explain how to do this technique?",
-  "Can I use a pressure cooker for this?"
-]
-
-// Final CTA section copy
-const FINAL_CTA = {
-  headline: "Ready to cook with confidence? ✨",
-  buttonText: "Try Cook Mode free →",
-  reassurance: "Free to start • Sign-in required"
-}
-
 interface FAQItem {
   question: string
   answer: string | ReactNode
 }
 
+const VALUE_PROPOSITIONS = [
+  {
+    title: "AI Meal Planning",
+    description: "Snap a photo of your pantry, get a personalized 3-meal plan in seconds.",
+    action: "Try it now",
+    href: "/pantry",
+  },
+  {
+    title: "Voice Cooking",
+    description: "Hands-free recipe guidance. Ask questions and adapt as you go.",
+    action: "Browse recipes",
+    href: "/search?q=dinner",
+  },
+  {
+    title: "Recipe Collection",
+    description: "Import recipes from any URL. Save, organize, and search with natural language.",
+    action: "Search recipes",
+    href: "/search?q=easy+chicken",
+  },
+]
+
+const HOW_IT_WORKS_STEPS = [
+  "Snap a photo of your pantry or type what you have",
+  "Get a personalized 3-meal plan",
+  "Cook hands-free with voice guidance",
+]
+
+const EXAMPLE_QUESTIONS = [
+  "Can I substitute this ingredient?",
+  "How can I adapt this recipe for my diet?",
+  "Can you explain how to do this technique?",
+  "Can I use a pressure cooker for this?",
+]
+
 const LandingPage: React.FC = () => {
   const navigate = useNavigate()
   const posthog = usePostHog()
-  // Open "Is it free to use?" by default
   const [openFaq, setOpenFaq] = useState<number | null>(0)
-  
-  // Get the selected hero copy variant
-  const heroCopy = HERO_COPY_OPTIONS[HERO_COPY_VARIANT] || HERO_COPY_OPTIONS[0]
-  
-  // Split headline for gradient if it contains delimiter
-  const headlineParts = heroCopy.headline.includes('|') 
-    ? heroCopy.headline.split('|')
-    : [heroCopy.headline]
 
   const faqData: FAQItem[] = [
     {
       question: "Is it free to use?",
       answer: (
         <div className="text-gray-600 text-left leading-relaxed">
-          <p className="mb-2">Yes! You can import and save unlimited recipes for free.</p>
+          <p className="mb-2">Yes! You can scan your pantry, get meal plans, browse, and save recipes for free.</p>
           <ul className="list-disc list-inside space-y-1 ml-2">
             <li>Free plan: 10 minutes of voice cooking assistance (one-time)</li>
             <li>Starter: $5/month for 40 minutes</li>
@@ -147,41 +80,37 @@ const LandingPage: React.FC = () => {
     }
   ]
 
-  // Track landing page view
   useEffect(() => {
-    posthog?.capture(POSTHOG_EVENTS.landingPageViewed, {
-      heroVariant: HERO_COPY_VARIANT,
-    })
+    posthog?.capture(POSTHOG_EVENTS.landingPageViewed)
   }, [posthog])
 
-  const handleTryNow = (location: 'hero' | 'final' = 'hero') => {
-    // Track CTA click
+  const handlePantryClick = () => {
     posthog?.capture(POSTHOG_EVENTS.landingPageCtaClicked, {
-      heroVariant: HERO_COPY_VARIANT,
-      ctaText: location === 'hero' ? heroCopy.ctaText : FINAL_CTA.buttonText,
-      location,
+      ctaText: 'Scan Your Pantry',
+      location: 'hero',
     })
-    
-    // Navigate to login page which now includes sign-up functionality
-    navigate('/login')
+    navigate('/pantry')
   }
 
-  const handleValuePropositionClick = (title: string, action: string) => {
-    // Track value proposition click
+  const handleSearchClick = () => {
+    posthog?.capture(POSTHOG_EVENTS.landingPageCtaClicked, {
+      ctaText: 'Search for a recipe',
+      location: 'hero',
+    })
+    navigate('/search?q=dinner')
+  }
+
+  const handleValuePropClick = (title: string, href: string) => {
     posthog?.capture(POSTHOG_EVENTS.landingPageValuePropClicked, {
       valuePropTitle: title,
-      actionText: action,
     })
-    
-    // Navigate to login page
-    navigate('/login')
+    navigate(href)
   }
 
   const toggleFaq = (index: number) => {
     const isOpening = openFaq !== index
     setOpenFaq(openFaq === index ? null : index)
-    
-    // Track FAQ interaction
+
     if (isOpening) {
       posthog?.capture(POSTHOG_EVENTS.landingPageFaqOpened, {
         faqIndex: index,
@@ -196,36 +125,39 @@ const LandingPage: React.FC = () => {
       {/* Hero Section */}
       <div className="max-w-5xl mx-auto px-6 py-12 md:py-16">
         <div className="text-center">
-          {/* Title */}
           <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-4 leading-tight">
-            {headlineParts.length > 1 ? (
-              <>
-                {headlineParts[0]}
-                <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                  {headlineParts[1]}
-                </span>
-              </>
-            ) : (
-              headlineParts[0]
-            )}
-        </h1>
-          
-          {/* Description */}
-          <p className="text-lg md:text-xl text-gray-600 mb-6 max-w-2xl mx-auto">
-            {heroCopy.description}
+            What's in your{' '}
+            <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              kitchen?
+            </span>
+          </h1>
+
+          <p className="text-lg md:text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+            Snap a photo of your pantry. Get a personalized meal plan in seconds.
           </p>
-          
-          {/* CTA */}
-          <button
-            onClick={() => handleTryNow('hero')}
-            className="bg-gray-900 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-gray-800 transition-colors text-base mb-3"
-          >
-            {heroCopy.ctaText}
-          </button>
-          
-          {/* Value Line */}
+
+          {/* Primary CTA */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-4">
+            <button
+              onClick={handlePantryClick}
+              className="flex items-center gap-2 bg-gray-900 text-white px-8 py-3 rounded-lg font-semibold hover:bg-gray-800 transition-colors text-base"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              Scan Your Pantry
+            </button>
+            <button
+              onClick={handleSearchClick}
+              className="text-gray-700 font-medium hover:text-blue-600 transition-colors text-base"
+            >
+              Or search for a recipe →
+            </button>
+          </div>
+
           <p className="text-sm text-gray-500">
-            {heroCopy.valueLine}
+            No sign-up required to get started
           </p>
         </div>
       </div>
@@ -237,22 +169,16 @@ const LandingPage: React.FC = () => {
             <div key={index} className="bg-white rounded-lg border border-gray-200 p-6 text-center flex flex-col">
               <h3 className="text-xl font-semibold text-gray-900 mb-3">{prop.title}</h3>
               <p className="text-gray-600 leading-relaxed mb-4 flex-grow">{prop.description}</p>
-              {prop.action && (
-                <a 
-                  href="#" 
-                  onClick={(e) => { 
-                    e.preventDefault(); 
-                    handleValuePropositionClick(prop.title, prop.action); 
-                  }}
-                  className="text-blue-600 hover:text-blue-700 font-medium inline-block mt-auto"
-                >
-                  {prop.action}
-                </a>
-              )}
+              <button
+                onClick={() => handleValuePropClick(prop.title, prop.href)}
+                className="text-blue-600 hover:text-blue-700 font-medium inline-block mt-auto"
+              >
+                {prop.action} →
+              </button>
             </div>
           ))}
-              </div>
-            </div>
+        </div>
+      </div>
 
       {/* How It Works Section */}
       <div className="max-w-4xl mx-auto px-6 py-12">
@@ -273,12 +199,12 @@ const LandingPage: React.FC = () => {
       {/* Example Questions Section */}
       <div className="max-w-4xl mx-auto px-6 py-12">
         <h2 className="text-2xl font-bold text-gray-900 text-center mb-8">
-          Example questions you can ask 💭
+          Ask anything while you cook
         </h2>
         <div className="grid md:grid-cols-2 gap-4">
           {EXAMPLE_QUESTIONS.map((question, index) => (
-            <div 
-              key={index} 
+            <div
+              key={index}
               className="bg-white rounded-lg border border-gray-200 p-4 text-center"
             >
               <p className="text-gray-700 italic">
@@ -295,7 +221,7 @@ const LandingPage: React.FC = () => {
           <h3 className="text-2xl font-bold text-gray-900 text-center mb-12">
             Frequently Asked Questions
           </h3>
-          
+
           <div className="space-y-4">
             {faqData.map((faq, index) => (
               <div key={index} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -315,7 +241,7 @@ const LandingPage: React.FC = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                   </svg>
                 </button>
-                
+
                 {openFaq === index && (
                   <div className="px-6 pb-4">
                     {typeof faq.answer === 'string' ? (
@@ -335,16 +261,40 @@ const LandingPage: React.FC = () => {
       <div className="max-w-4xl mx-auto px-6 py-16">
         <div className="text-center">
           <h2 className="text-3xl font-bold text-gray-900 mb-6">
-            {FINAL_CTA.headline}
+            Ready to cook with what you have?
           </h2>
-          <button
-            onClick={() => handleTryNow('final')}
-            className="bg-gray-900 text-white px-8 py-3 rounded-lg font-semibold hover:bg-gray-800 transition-colors text-lg mb-3"
-          >
-            {FINAL_CTA.buttonText}
-          </button>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-3">
+            <button
+              onClick={() => {
+                posthog?.capture(POSTHOG_EVENTS.landingPageCtaClicked, {
+                  ctaText: 'Scan Your Pantry',
+                  location: 'final',
+                })
+                navigate('/pantry')
+              }}
+              className="flex items-center gap-2 bg-gray-900 text-white px-8 py-3 rounded-lg font-semibold hover:bg-gray-800 transition-colors text-lg"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              Scan Your Pantry
+            </button>
+            <button
+              onClick={() => {
+                posthog?.capture(POSTHOG_EVENTS.landingPageCtaClicked, {
+                  ctaText: 'Search recipes',
+                  location: 'final',
+                })
+                navigate('/search?q=dinner')
+              }}
+              className="text-gray-700 font-medium hover:text-blue-600 transition-colors text-lg"
+            >
+              Or search for a recipe →
+            </button>
+          </div>
           <p className="text-sm text-gray-500">
-            {FINAL_CTA.reassurance}
+            Free to start · No sign-up required
           </p>
         </div>
       </div>

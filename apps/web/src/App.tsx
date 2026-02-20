@@ -44,17 +44,33 @@ const AppRoutes = (): JSX.Element => {
         <Route path="/dashboard" element={<Navigate to="/" replace />} />
         <Route path="/home" element={<Navigate to="/" replace />} />
         
-        {/* Protected routes with layout */}
-        <Route 
-          path="/search" 
+        {/* Ungated routes with layout */}
+        <Route
+          path="/search"
           element={
-            <ProtectedRoute>
-              <AppLayout>
-                <SearchPage />
-              </AppLayout>
-            </ProtectedRoute>
-          } 
+            <AppLayout>
+              <SearchPage />
+            </AppLayout>
+          }
         />
+        <Route
+          path="/pantry"
+          element={
+            <AppLayout>
+              <PantryPage />
+            </AppLayout>
+          }
+        />
+        <Route
+          path="/:recipeId"
+          element={
+            <AppLayout>
+              <RecipeDetailPage />
+            </AppLayout>
+          }
+        />
+
+        {/* Protected routes with layout */}
         <Route
           path="/tags"
           element={
@@ -64,26 +80,6 @@ const AppRoutes = (): JSX.Element => {
               </AppLayout>
             </ProtectedRoute>
           }
-        />
-        <Route
-          path="/pantry"
-          element={
-            <ProtectedRoute>
-              <AppLayout>
-                <PantryPage />
-              </AppLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/:recipeId" 
-          element={
-            <ProtectedRoute>
-              <AppLayout>
-                <RecipeDetailPage />
-              </AppLayout>
-            </ProtectedRoute>
-          } 
         />
         
         {/* Catch all - redirect to home */}

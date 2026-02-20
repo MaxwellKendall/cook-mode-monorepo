@@ -2,6 +2,7 @@ import React, { JSX, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useSubscription } from '../contexts/SubscriptionContext'
 import UpgradePrompt from './UpgradePrompt'
+import LoginPrompt from './auth/LoginPrompt'
 import { useRecipeSave } from '../hooks/useRecipeSave'
 import { useCookingAssistant } from '../hooks/useCookingAssistant'
 import {
@@ -19,23 +20,34 @@ const RecipeDisplay = ({ recipe, onBack }: RecipeDisplayProps): JSX.Element | nu
   const { user } = useAuth()
   const { subscriptionStatus, canUseCookingAssistant, minutesRemaining, loading: subscriptionLoading } = useSubscription()
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
+  const [loginPromptMessage, setLoginPromptMessage] = useState('')
 
   // Use the recipe save hook
-  const { isSaved, isSaveLoading, handleSaveClick } = useRecipeSave({
+  const { isSaved, isSaveLoading, handleSaveClick: handleSaveClickAuth } = useRecipeSave({
     userId: user?.id,
     recipeId: recipe.id
   })
 
+  const handleSaveClick = () => {
+    if (!user) {
+      setLoginPromptMessage('Sign in to save this recipe')
+      setShowLoginPrompt(true)
+      return
+    }
+    handleSaveClickAuth()
+  }
+
   // Get user tags for TagManager
   const { data: userTags = [], isLoading: userTagsLoading } = useUserTags(user?.id)
-  
+
   // Use the cooking assistant hook
   const {
     isCookModeActive,
     isConnecting,
     error,
     isMuted,
-    handleToggleCookMode,
+    handleToggleCookMode: handleToggleCookModeAuth,
     handleSetMute
   } = useCookingAssistant({
     recipe,
@@ -44,8 +56,34 @@ const RecipeDisplay = ({ recipe, onBack }: RecipeDisplayProps): JSX.Element | nu
     onShowUpgradeModal: () => setShowUpgradeModal(true),
   })
 
+  const handleToggleCookMode = () => {
+    if (!user) {
+      setLoginPromptMessage('Sign in to use voice cooking')
+      setShowLoginPrompt(true)
+      return
+    }
+    handleToggleCookModeAuth()
+  }
+
   // Helper function to render session status
   const renderSessionStatus = () => {
+    if (!user) {
+      return (
+        <button
+          onClick={() => {
+            setLoginPromptMessage('Sign in to use voice cooking')
+            setShowLoginPrompt(true)
+          }}
+          className="flex items-center space-x-2 text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+          </svg>
+          <span>Sign in to cook with voice</span>
+        </button>
+      )
+    }
+
     if (subscriptionLoading) {
       return (
         <div className="flex items-center text-sm text-gray-500">
@@ -107,7 +145,7 @@ const RecipeDisplay = ({ recipe, onBack }: RecipeDisplayProps): JSX.Element | nu
         onSave={handleSaveClick}
         isSaved={isSaved}
         isSaveLoading={isSaveLoading}
-        showSaveButton={!!user?.id}
+        showSaveButton={true}
         userId={user?.id}
         userTags={userTags}
         userTagsLoading={userTagsLoading}
@@ -141,9 +179,17 @@ const RecipeDisplay = ({ recipe, onBack }: RecipeDisplayProps): JSX.Element | nu
 
         {/* Upgrade Modal */}
         {showUpgradeModal && (
-          <UpgradePrompt 
+          <UpgradePrompt
             isModal={true}
             onClose={() => setShowUpgradeModal(false)}
+          />
+        )}
+
+        {/* Login Prompt Modal */}
+        {showLoginPrompt && (
+          <LoginPrompt
+            message={loginPromptMessage}
+            onClose={() => setShowLoginPrompt(false)}
           />
         )}
       </div>

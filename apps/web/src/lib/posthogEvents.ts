@@ -25,6 +25,15 @@ export const POSTHOG_EVENTS = {
   landingPageCtaClicked: 'landingPageCtaClicked',
   landingPageValuePropClicked: 'landingPageValuePropClicked',
   landingPageFaqOpened: 'landingPageFaqOpened',
+
+  // Pantry Events
+  pantryPageViewed: 'pantryPageViewed',
+  pantryPhotoUploaded: 'pantryPhotoUploaded',
+  pantryTypeIngredientsClicked: 'pantryTypeIngredientsClicked',
+  ingredientsParsed: 'ingredientsParsed',
+  mealPlanGenerated: 'mealPlanGenerated',
+  mealPlanAccepted: 'mealPlanAccepted',
+  mealPlanSaved: 'mealPlanSaved',
 } as const
 
 // Type definitions for better type safety

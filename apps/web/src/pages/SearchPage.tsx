@@ -6,38 +6,39 @@ import { useSaveRecipe, useRemoveSavedRecipe } from '../hooks/mutations'
 import { searchRecipes } from '../services/recipeService'
 import RecipeGrid from '../components/dashboard/content/RecipeGrid'
 import LoadingState from '../components/dashboard/content/LoadingState'
+import LoginPrompt from '../components/auth/LoginPrompt'
 import { RecipeBase } from '../types'
 
 const SearchPage: React.FC = () => {
   const { user } = useAuth()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  
-  // Queries
+
+  // Queries - pass undefined for anonymous users
   const { data: savedRecipes = [] } = useSavedRecipes(user?.id)
   const { data: userTags = [], isLoading: userTagsLoading } = useUserTags(user?.id)
-  
+
   // Mutations
   const saveRecipe = useSaveRecipe()
   const removeSavedRecipe = useRemoveSavedRecipe()
-  
+
   const [searchResults, setSearchResults] = useState<RecipeBase[]>([])
   const [searchLoading, setSearchLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
 
   const query = searchParams.get('q') || ''
 
-  // Perform search when query changes
+  // Perform search when query changes - works for both auth and anon users
   useEffect(() => {
-    if (query && user?.id) {
+    if (query) {
       const performSearch = async () => {
         try {
           setSearchLoading(true)
           setError(null)
-          const searchResponse = await searchRecipes(query, user.id)
-          
+          const searchResponse = await searchRecipes(query, user?.id)
+
           if (searchResponse.success && searchResponse.data) {
-            // No transformation needed - API returns RecipeBase[]
             setSearchResults(searchResponse.data)
           } else {
             setError(searchResponse.error || 'Failed to search recipes')
@@ -51,10 +52,9 @@ const SearchPage: React.FC = () => {
           setSearchLoading(false)
         }
       }
-      
+
       performSearch()
     } else if (!query) {
-      // If no query, redirect to home
       navigate('/')
     }
   }, [query, user?.id, navigate])
@@ -65,7 +65,10 @@ const SearchPage: React.FC = () => {
 
   const handleSaveClick = async (e: React.MouseEvent, isSaved = false, recipe: RecipeBase) => {
     e.stopPropagation()
-    if (!user) return
+    if (!user) {
+      setShowLoginPrompt(true)
+      return
+    }
 
     try {
       if (isSaved) {
@@ -77,13 +80,6 @@ const SearchPage: React.FC = () => {
       console.error('Error toggling save status:', error)
     }
   }
-
-
-  if (!user) {
-    navigate('/')
-    return null
-  }
-
 
   if (searchLoading) {
     return <LoadingState message="Searching recipes..." />
@@ -123,6 +119,13 @@ const SearchPage: React.FC = () => {
           userId={user?.id}
         />
       </div>
+
+      {showLoginPrompt && (
+        <LoginPrompt
+          message="Sign in to save this recipe"
+          onClose={() => setShowLoginPrompt(false)}
+        />
+      )}
     </div>
   )
 }

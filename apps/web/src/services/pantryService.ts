@@ -67,19 +67,24 @@ export interface ApiResponse<T> {
 }
 
 /**
- * Start ingredient parsing job (supports multiple images)
+ * Start ingredient parsing job (supports multiple images, anonymous or authenticated)
  */
 export async function parseIngredients(
   imageUrls: string[],
-  userId: string
+  userId?: string,
+  anonymousSessionId?: string
 ): Promise<CreateJobResponse> {
   try {
+    const body: Record<string, unknown> = { imageUrls };
+    if (userId) body.userId = userId;
+    if (anonymousSessionId) body.anonymousSessionId = anonymousSessionId;
+
     const response = await fetch(`${API_URL}/pantry/parse`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ imageUrls, userId }),
+      body: JSON.stringify(body),
     });
 
     if (!response.ok) {
@@ -97,20 +102,25 @@ export async function parseIngredients(
 }
 
 /**
- * Start meal plan generation job
+ * Start meal plan generation job (anonymous or authenticated)
  */
 export async function generateMealPlan(
-  userId: string,
   ingredients: string[],
-  preferences?: MealPlanPreferences
+  preferences?: MealPlanPreferences,
+  userId?: string,
+  anonymousSessionId?: string
 ): Promise<CreateJobResponse> {
   try {
+    const body: Record<string, unknown> = { ingredients, preferences };
+    if (userId) body.userId = userId;
+    if (anonymousSessionId) body.anonymousSessionId = anonymousSessionId;
+
     const response = await fetch(`${API_URL}/pantry/mealplan`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ userId, ingredients, preferences }),
+      body: JSON.stringify(body),
     });
 
     if (!response.ok) {
