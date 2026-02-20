@@ -62,3 +62,17 @@ export {
   type WeeklyPlanStatus,
   type CreateWeeklyPlanInput,
 } from './repositories/weekly-plans.js';
+
+export {
+  createGroceryList,
+  getGroceryListByPlanId,
+  getGroceryListById,
+  toggleItem,
+  addManualItem,
+  removeItem,
+  getGroceryListProgress,
+  type CreateGroceryListInput,
+  type AddManualItemInput,
+  type GroceryListWithItems,
+  type GroceryListProgress,
+} from './repositories/grocery-lists.js';

@@ -262,6 +262,36 @@ export const weeklyPlans = pgTable('weekly_plans', {
   anonymousSessionIdIdx: index('idx_weekly_plans_anonymous_session_id').on(table.anonymousSessionId),
 }));
 
+// Grocery lists table
+export const groceryLists = pgTable('grocery_lists', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  weeklyPlanId: uuid('weekly_plan_id').notNull().references(() => weeklyPlans.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }),
+  anonymousSessionId: varchar('anonymous_session_id', { length: 255 }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({
+  weeklyPlanIdIdx: index('idx_grocery_lists_weekly_plan_id').on(table.weeklyPlanId),
+  userIdIdx: index('idx_grocery_lists_user_id').on(table.userId),
+}));
+
+// Grocery list items table
+export const groceryListItems = pgTable('grocery_list_items', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  groceryListId: uuid('grocery_list_id').notNull().references(() => groceryLists.id, { onDelete: 'cascade' }),
+  name: varchar('name', { length: 500 }).notNull(),
+  quantity: varchar('quantity', { length: 100 }),
+  category: varchar('category', { length: 20 }).notNull(), // 'produce' | 'meat_seafood' | 'dairy' | 'pantry' | 'frozen' | 'bakery' | 'other'
+  recipeAttributions: jsonb('recipe_attributions'), // [{ recipeId, title, day }]
+  checked: boolean('checked').notNull().default(false),
+  isManualAdd: boolean('is_manual_add').notNull().default(false),
+  checkedAt: timestamp('checked_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({
+  groceryListIdIdx: index('idx_grocery_list_items_grocery_list_id').on(table.groceryListId),
+  categoryIdx: index('idx_grocery_list_items_category').on(table.category),
+}));
+
 // Jobs table for async processing
 export const jobs = pgTable('jobs', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -391,6 +421,7 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   voiceSessions: many(voiceSessions),
   mealPlans: many(mealPlans),
   weeklyPlans: many(weeklyPlans),
+  groceryLists: many(groceryLists),
 }));
 
 export const userRecipeSavesRelations = relations(userRecipeSaves, ({ one }) => ({
@@ -457,6 +488,26 @@ export const weeklyPlansRelations = relations(weeklyPlans, ({ one }) => ({
     fields: [weeklyPlans.userId],
     references: [users.id],
   }),
+  groceryList: one(groceryLists),
+}));
+
+export const groceryListsRelations = relations(groceryLists, ({ one, many }) => ({
+  weeklyPlan: one(weeklyPlans, {
+    fields: [groceryLists.weeklyPlanId],
+    references: [weeklyPlans.id],
+  }),
+  user: one(users, {
+    fields: [groceryLists.userId],
+    references: [users.id],
+  }),
+  items: many(groceryListItems),
+}));
+
+export const groceryListItemsRelations = relations(groceryListItems, ({ one }) => ({
+  groceryList: one(groceryLists, {
+    fields: [groceryListItems.groceryListId],
+    references: [groceryLists.id],
+  }),
 }));
 
 export const jobsRelations = relations(jobs, ({ many }) => ({
@@ -486,6 +537,10 @@ export type MealPlan = typeof mealPlans.$inferSelect;
 export type NewMealPlan = typeof mealPlans.$inferInsert;
 export type WeeklyPlan = typeof weeklyPlans.$inferSelect;
 export type NewWeeklyPlan = typeof weeklyPlans.$inferInsert;
+export type GroceryList = typeof groceryLists.$inferSelect;
+export type NewGroceryList = typeof groceryLists.$inferInsert;
+export type GroceryListItem = typeof groceryListItems.$inferSelect;
+export type NewGroceryListItem = typeof groceryListItems.$inferInsert;
 export type Job = typeof jobs.$inferSelect;
 export type NewJob = typeof jobs.$inferInsert;
 export type JobEvent = typeof jobEvents.$inferSelect;
