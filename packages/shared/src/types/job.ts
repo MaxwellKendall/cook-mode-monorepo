@@ -2,7 +2,8 @@ export type JobOperationType =
   | 'recipe.extract'
   | 'voice.track'
   | 'ingredient.parse'
-  | 'mealplan.generate';
+  | 'mealplan.generate'
+  | 'weeklyplan.generate';
 
 export interface RecipeExtractPayload {
   url: string;
@@ -18,7 +19,8 @@ export interface VoiceTrackPayload {
 
 export interface IngredientParsePayload {
   imageUrls: string[];
-  userId: string;
+  userId?: string;
+  anonymousSessionId?: string;
 }
 
 export interface MealPlanPreferences {
@@ -29,16 +31,31 @@ export interface MealPlanPreferences {
 }
 
 export interface MealPlanGeneratePayload {
-  userId: string;
+  userId?: string;
+  anonymousSessionId?: string;
   ingredients: string[];
   preferences?: MealPlanPreferences;
+}
+
+export interface WeeklyPlanPreferences {
+  servings: number;
+  numDinners: number;
+  dietary: string[];
+  freeText?: string;
+}
+
+export interface WeeklyPlanGeneratePayload {
+  userId?: string;
+  anonymousSessionId?: string;
+  preferences: WeeklyPlanPreferences;
 }
 
 export type JobPayload =
   | RecipeExtractPayload
   | VoiceTrackPayload
   | IngredientParsePayload
-  | MealPlanGeneratePayload;
+  | MealPlanGeneratePayload
+  | WeeklyPlanGeneratePayload;
 
 export interface JobOperation {
   type: JobOperationType;
@@ -144,5 +161,58 @@ export interface MealPlanProgressMessage {
   progress: number;
   message?: string;
   mealPlan?: MealPlan;
+  error?: string;
+}
+
+// Weekly Plan Types
+export type WeeklyPlanStage =
+  | 'finding_recipes'
+  | 'building_plan'
+  | 'creating_grocery_list'
+  | 'completed'
+  | 'failed';
+
+export interface WeeklyPlanMeal {
+  day: number;
+  recipeId: string;
+  title: string;
+  imageUrl?: string;
+  prepTime?: number;
+  cookTime?: number;
+}
+
+export type GroceryItemCategory =
+  | 'produce'
+  | 'meat_seafood'
+  | 'dairy'
+  | 'pantry'
+  | 'frozen'
+  | 'bakery'
+  | 'other';
+
+export interface GroceryItemAttribution {
+  recipeId: string;
+  title: string;
+  day: number;
+}
+
+export interface GroceryItem {
+  name: string;
+  quantity: string;
+  category: GroceryItemCategory;
+  recipeAttributions: GroceryItemAttribution[];
+}
+
+export interface WeeklyPlanResult {
+  meals: WeeklyPlanMeal[];
+  groceryItems: GroceryItem[];
+}
+
+export interface WeeklyPlanProgressMessage {
+  jobId: string;
+  stage: WeeklyPlanStage;
+  progress: number;
+  message?: string;
+  weeklyPlan?: WeeklyPlanResult;
   error?: string;
 }
