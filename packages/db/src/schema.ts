@@ -245,6 +245,23 @@ export const mealPlans = pgTable('meal_plans', {
   createdAtIdx: index('idx_meal_plans_created_at').on(table.createdAt),
 }));
 
+// Weekly plans table
+export const weeklyPlans = pgTable('weekly_plans', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }),
+  anonymousSessionId: varchar('anonymous_session_id', { length: 255 }),
+  status: varchar('status', { length: 20 }).notNull().default('generating'), // 'generating' | 'active' | 'completed'
+  preferences: jsonb('preferences').notNull(), // WeeklyPlanPreferences
+  meals: jsonb('meals'), // WeeklyPlanMeal[]
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({
+  userIdIdx: index('idx_weekly_plans_user_id').on(table.userId),
+  statusIdx: index('idx_weekly_plans_status').on(table.status),
+  createdAtIdx: index('idx_weekly_plans_created_at').on(table.createdAt),
+  anonymousSessionIdIdx: index('idx_weekly_plans_anonymous_session_id').on(table.anonymousSessionId),
+}));
+
 // Jobs table for async processing
 export const jobs = pgTable('jobs', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -373,6 +390,7 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   subscription: one(userSubscriptions),
   voiceSessions: many(voiceSessions),
   mealPlans: many(mealPlans),
+  weeklyPlans: many(weeklyPlans),
 }));
 
 export const userRecipeSavesRelations = relations(userRecipeSaves, ({ one }) => ({
@@ -434,6 +452,13 @@ export const mealPlansRelations = relations(mealPlans, ({ one }) => ({
   }),
 }));
 
+export const weeklyPlansRelations = relations(weeklyPlans, ({ one }) => ({
+  user: one(users, {
+    fields: [weeklyPlans.userId],
+    references: [users.id],
+  }),
+}));
+
 export const jobsRelations = relations(jobs, ({ many }) => ({
   events: many(jobEvents),
 }));
@@ -459,6 +484,8 @@ export type UserSubscription = typeof userSubscriptions.$inferSelect;
 export type VoiceSession = typeof voiceSessions.$inferSelect;
 export type MealPlan = typeof mealPlans.$inferSelect;
 export type NewMealPlan = typeof mealPlans.$inferInsert;
+export type WeeklyPlan = typeof weeklyPlans.$inferSelect;
+export type NewWeeklyPlan = typeof weeklyPlans.$inferInsert;
 export type Job = typeof jobs.$inferSelect;
 export type NewJob = typeof jobs.$inferInsert;
 export type JobEvent = typeof jobEvents.$inferSelect;

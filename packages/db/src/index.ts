@@ -49,3 +49,16 @@ export {
   type MealPlanStatus,
   type CreateMealPlanInput,
 } from './repositories/meal-plans.js';
+
+export {
+  createWeeklyPlan,
+  getWeeklyPlanById,
+  getUserWeeklyPlans,
+  getWeeklyPlanByAnonymousSession,
+  updateWeeklyPlanStatus,
+  markMealCooked,
+  deleteWeeklyPlan,
+  claimAnonymousWeeklyPlans,
+  type WeeklyPlanStatus,
+  type CreateWeeklyPlanInput,
+} from './repositories/weekly-plans.js';
