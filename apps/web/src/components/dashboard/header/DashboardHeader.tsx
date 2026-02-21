@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faHome, faTags, faUtensils } from '@fortawesome/free-solid-svg-icons'
 import { createCustomerPortalSession } from '../../../services/subscriptionService'
+import GroceryBadge from '../../layout/GroceryBadge'
 
 interface DashboardHeaderProps {
   user: any
@@ -68,10 +69,19 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             className="p-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
             title="Go to Dashboard"
           >
-            <FontAwesomeIcon 
-              icon={faHome} 
-              className="w-6 h-6 sm:w-7 sm:h-7" 
+            <FontAwesomeIcon
+              icon={faHome}
+              className="w-6 h-6 sm:w-7 sm:h-7"
             />
+          </button>
+          <button
+            onClick={() => navigate('/plan')}
+            className="p-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
+            title="Plan My Week"
+          >
+            <svg className="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
           </button>
           <button
             onClick={() => navigate('/pantry')}
@@ -95,8 +105,11 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           </button>
         </div>
 
-        {/* Right Side - Minutes + Upgrade Button + Avatar */}
+        {/* Right Side - Grocery + Minutes + Upgrade Button + Avatar */}
         <div className="flex items-center space-x-3 sm:space-x-4">
+          {/* Grocery List Badge */}
+          <GroceryBadge />
+
           {/* Minutes Remaining Display */}
           {subscriptionStatus && (
             <div className="hidden sm:flex items-center space-x-2 px-3 py-1.5 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">

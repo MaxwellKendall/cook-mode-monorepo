@@ -29,10 +29,10 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   }
 
   if (!user) {
-    // Anonymous users get a minimal layout with search bar
+    // Anonymous users get a header with Plan My Week + Pantry + Sign In
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col">
-        {/* Minimal header for anonymous users */}
+        {/* Header for anonymous users */}
         <div className="bg-white border-b border-gray-200 px-4 sm:px-6 py-4">
           <div className="flex items-center justify-between">
             <button
@@ -46,12 +46,26 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
               </div>
               <span className="text-lg font-semibold text-gray-900">Cook Mode</span>
             </button>
-            <button
-              onClick={() => navigate('/login')}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
-            >
-              Sign In
-            </button>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => navigate('/plan')}
+                className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+              >
+                Plan My Week
+              </button>
+              <button
+                onClick={() => navigate('/pantry')}
+                className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors hidden sm:block"
+              >
+                Pantry
+              </button>
+              <button
+                onClick={() => navigate('/login')}
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+              >
+                Sign In
+              </button>
+            </div>
           </div>
         </div>
 
