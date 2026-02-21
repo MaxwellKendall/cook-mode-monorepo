@@ -61,9 +61,9 @@ const UpgradePrompt: React.FC<UpgradePromptProps> = ({ onClose, isModal = false 
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-8 rounded-t-2xl">
           <div className="text-center">
             <FontAwesomeIcon icon={faCrown} className="text-4xl mb-4 text-yellow-300" />
-            <h2 className="text-3xl font-bold mb-2">Upgrade Your Cooking Experience</h2>
+            <h2 className="text-3xl font-bold mb-2">Upgrade to Pro</h2>
             <p className="text-blue-100 text-lg">
-              {`Get ${selectedPlan.minutes} minutes of voice assistance for only $${selectedPlan.price}/${selectedPlan.interval}`}
+              Unlimited meal plans for ${selectedPlan.price}/{selectedPlan.interval}
             </p>
           </div>
         </div>

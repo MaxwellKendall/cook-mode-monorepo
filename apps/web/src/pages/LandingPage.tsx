@@ -52,12 +52,10 @@ const LandingPage: React.FC = () => {
       question: "Is it free to use?",
       answer: (
         <div className="text-gray-600 text-left leading-relaxed">
-          <p className="mb-2">Yes! You can scan your pantry, get meal plans, browse, and save recipes for free.</p>
+          <p className="mb-2">Yes! Most features are free. Here's how the two plans compare:</p>
           <ul className="list-disc list-inside space-y-1 ml-2">
-            <li>Free plan: 10 minutes of voice cooking assistance (one-time)</li>
-            <li>Starter: $5/month for 40 minutes</li>
-            <li>Cook: $8/month for 60 minutes</li>
-            <li>Chef: $10/month for 80 minutes</li>
+            <li>Free: 2 weekly meal plans/month, unlimited grocery lists, single meal generation, recipe browsing &amp; saves, 10 min voice trial</li>
+            <li>Pro ($8/month): Unlimited plans, plan history, household sharing, unlimited meal swaps, 60 min/mo voice cooking</li>
           </ul>
         </div>
       )

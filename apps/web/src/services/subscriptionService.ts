@@ -1,5 +1,5 @@
 import { loadStripe } from '@stripe/stripe-js'
-import { ADVERTISED_MINUTES, PLAN_PRICES, PLAN_NAMES, type Plan } from '../config/plans'
+import { ADVERTISED_MINUTES, PLAN_PRICES, PLAN_NAMES, MONTHLY_PLAN_LIMIT, type Plan } from '../config/plans'
 
 // Initialize Stripe with fallback
 const stripePublishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
@@ -21,45 +21,23 @@ export interface SubscriptionPlan {
 
 export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
   {
-    id: 'starter',
-    name: PLAN_NAMES.starter,
-    price: PLAN_PRICES.starter,
-    minutes: ADVERTISED_MINUTES.starter,
+    id: 'pro',
+    name: PLAN_NAMES.pro,
+    price: PLAN_PRICES.pro,
+    minutes: ADVERTISED_MINUTES.pro,
     interval: 'month',
-    stripePriceId: import.meta.env.VITE_STRIPE_PRICE_STARTER, // From environment variable
+    stripePriceId: import.meta.env.VITE_STRIPE_PRICE_PRO,
     features: [
-      `${ADVERTISED_MINUTES.starter} minutes per month`,
-      '~2 recipes per week',
-      'Voice cooking assistant',
-    ],
-  },
-  {
-    id: 'cook',
-    name: PLAN_NAMES.cook,
-    price: PLAN_PRICES.cook,
-    minutes: ADVERTISED_MINUTES.cook,
-    interval: 'month',
-    stripePriceId: import.meta.env.VITE_STRIPE_PRICE_COOK, // From environment variable
-    features: [
-      `${ADVERTISED_MINUTES.cook} minutes per month`,
-      '~3 recipes per week',
-      'Voice cooking assistant',
-    ],
-  },
-  {
-    id: 'chef',
-    name: PLAN_NAMES.chef,
-    price: PLAN_PRICES.chef,
-    minutes: ADVERTISED_MINUTES.chef,
-    interval: 'month',
-    stripePriceId: import.meta.env.VITE_STRIPE_PRICE_CHEF, // From environment variable
-    features: [
-      `${ADVERTISED_MINUTES.chef} minutes per month`,
-      '~4 recipes per week',
-      'Voice cooking assistant',
+      'Unlimited weekly meal plans',
+      `${ADVERTISED_MINUTES.pro} min/mo voice cooking`,
+      'Plan history',
+      'Household sharing',
+      'Unlimited meal swaps',
     ],
   },
 ]
+
+export { MONTHLY_PLAN_LIMIT }
 
 // Simple subscription service for session tracking and upgrade flow
 export interface SubscriptionStatus {

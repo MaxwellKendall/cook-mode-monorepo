@@ -1,36 +1,26 @@
 /**
  * Shared Plan Configuration
- * 
- * Centralized configuration for subscription plans used across API and browser services.
- * This ensures consistency between backend calculations and frontend display.
+ *
+ * Two tiers: Free and Pro ($8/mo).
+ * Primary gating: plan generation frequency (2 plans/month free, unlimited Pro).
  */
 
-export type Plan = 'free' | 'starter' | 'cook' | 'chef';
+export type Plan = 'free' | 'pro';
 
 /**
  * Plan prices in dollars per month
  */
 export const PLAN_PRICES: Record<Plan, number> = {
-  free: 1.50,   // Equivalent to $0.30 cost
-  starter: 5,   // $5/mo
-  cook: 8,      // $8/mo
-  chef: 10,     // $10/mo
+  free: 0,
+  pro: 8,
 };
 
 /**
- * Advertised minutes per plan
- * These are the user-facing minutes advertised for each subscription tier.
- * 
- * To calculate these values, run: npm run calculate-advertised-minutes
- * (or: cd services/data && npx ts-node scripts/calculate-advertised-minutes.ts)
- * 
- * Formula: Allowance = Price × (1 - TARGET_MARGIN) → Minutes = Allowance / COST_PER_MINUTE
+ * Advertised voice cooking minutes per plan
  */
 export const ADVERTISED_MINUTES: Record<Plan, number> = {
-  free: 10, // rounded down from 11
-  starter: 40, // rounded up from 39
-  cook: 60, // rounded down from 63
-  chef: 80, // rounded up from 79
+  free: 10,  // one-time trial
+  pro: 60,   // per month
 };
 
 /**
@@ -38,7 +28,13 @@ export const ADVERTISED_MINUTES: Record<Plan, number> = {
  */
 export const PLAN_NAMES: Record<Plan, string> = {
   free: 'Free',
-  starter: 'Starter',
-  cook: 'Cook',
-  chef: 'Chef',
+  pro: 'Pro',
+};
+
+/**
+ * Monthly weekly plan generation limit (null = unlimited)
+ */
+export const MONTHLY_PLAN_LIMIT: Record<Plan, number | null> = {
+  free: 2,
+  pro: null,
 };
