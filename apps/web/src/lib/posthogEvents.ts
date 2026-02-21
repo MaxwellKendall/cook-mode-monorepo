@@ -50,6 +50,12 @@ export const POSTHOG_EVENTS = {
   groceryItemAdded: 'groceryItemAdded',             // manual item added
   groceryListCompleted: 'groceryListCompleted',     // all items checked (100% progress)
 
+  // Single Meal Events
+  // Funnel: singleMealStarted → singleMealGenerated → singleMealViewRecipeClicked | singleMealShowAnotherClicked | singleMealShared | singleMealUpsellClicked
+  singleMealStarted: 'singleMealStarted',           // generation triggered; props: { excludeCount }
+  singleMealGenerated: 'singleMealGenerated',       // generation completed; props: { recipeId, title }
+  singleMealShowAnotherClicked: 'singleMealShowAnotherClicked', // user regenerates
+
   // Gate Events
   signupGateShown: 'signupGateShown',               // sign-up prompt shown; props: { trigger: 'save_plan' | 'check_item' }
   signupGateConverted: 'signupGateConverted',       // user signed up from gate

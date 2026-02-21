@@ -8,4 +8,5 @@ export { useGenerateWeeklyPlan } from './useGenerateWeeklyPlan'
 export { useSwapMeal } from './useSwapMeal'
 export { useToggleGroceryItem } from './useToggleGroceryItem'
 export { useAddGroceryItem } from './useAddGroceryItem'
+export { useGenerateSingleMeal } from './useGenerateSingleMeal'
 

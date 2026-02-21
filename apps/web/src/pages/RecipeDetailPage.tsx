@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useRecipe } from '../hooks/queries'
 import { useToast } from '../contexts/ToastContext'
@@ -58,12 +58,29 @@ const RecipeDetailPage: React.FC = () => {
     return <ErrorState error="Recipe not found" onBack={handleBackToHome} />
   }
 
+  const isShareRef = searchParams.get('ref') === 'share';
+
   return (
-    <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-sm border border-gray-200">
-      <RecipeDisplay
-        recipe={recipe}
-        onBack={handleBackToHome}
-      />
+    <div className="max-w-4xl mx-auto">
+      {isShareRef && (
+        <div className="mb-4 bg-orange-50 border border-orange-200 rounded-xl p-4 flex items-center justify-between gap-4">
+          <p className="text-sm font-medium text-orange-800">
+            Want your own AI dinner idea?
+          </p>
+          <Link
+            to="/meal"
+            className="shrink-0 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+          >
+            Get Tonight's Dinner →
+          </Link>
+        </div>
+      )}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <RecipeDisplay
+          recipe={recipe}
+          onBack={handleBackToHome}
+        />
+      </div>
     </div>
   )
 }
