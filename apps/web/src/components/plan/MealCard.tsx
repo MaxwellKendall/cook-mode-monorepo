@@ -11,6 +11,7 @@ interface MealCardProps {
   cookTime?: number;
   isSwapping?: boolean;
   onSwap: (day: number) => void;
+  planId?: string;
 }
 
 const MealCard: React.FC<MealCardProps> = ({
@@ -21,15 +22,17 @@ const MealCard: React.FC<MealCardProps> = ({
   cookTime,
   isSwapping,
   onSwap,
+  planId,
 }) => {
   const navigate = useNavigate();
   const dayLabel = DAY_NAMES[(day - 1) % 7] ?? `Day ${day}`;
+  const recipeUrl = planId ? `/${recipeId}?planId=${planId}&day=${day}` : `/${recipeId}`;
 
   return (
     <div className="flex-shrink-0 w-48 sm:w-52 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
       {/* Thumbnail */}
       <button
-        onClick={() => navigate(`/${recipeId}`)}
+        onClick={() => navigate(recipeUrl)}
         className="block w-full relative"
         aria-label={`View ${title}`}
       >
@@ -52,7 +55,7 @@ const MealCard: React.FC<MealCardProps> = ({
       {/* Content */}
       <div className="p-3">
         <button
-          onClick={() => navigate(`/${recipeId}`)}
+          onClick={() => navigate(recipeUrl)}
           className="text-left w-full"
         >
           <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 leading-snug mb-1">

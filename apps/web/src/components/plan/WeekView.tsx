@@ -13,9 +13,10 @@ interface WeekViewProps {
   meals: WeekMeal[];
   swappingDay: number | null;
   onSwap: (day: number) => void;
+  planId?: string;
 }
 
-const WeekView: React.FC<WeekViewProps> = ({ meals, swappingDay, onSwap }) => {
+const WeekView: React.FC<WeekViewProps> = ({ meals, swappingDay, onSwap, planId }) => {
   const sorted = [...meals].sort((a, b) => a.day - b.day);
 
   return (
@@ -32,6 +33,7 @@ const WeekView: React.FC<WeekViewProps> = ({ meals, swappingDay, onSwap }) => {
             cookTime={meal.cookTime}
             isSwapping={swappingDay === meal.day}
             onSwap={onSwap}
+            planId={planId}
           />
         ))}
       </div>
