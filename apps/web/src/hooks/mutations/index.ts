@@ -4,4 +4,8 @@ export { useApplyTag } from './useApplyTag'
 export { useRemoveTag } from './useRemoveTag'
 export { useCreateAndApplyTag } from './useCreateAndApplyTag'
 export { useDeleteTag } from './useDeleteTag'
+export { useGenerateWeeklyPlan } from './useGenerateWeeklyPlan'
+export { useSwapMeal } from './useSwapMeal'
+export { useToggleGroceryItem } from './useToggleGroceryItem'
+export { useAddGroceryItem } from './useAddGroceryItem'
 
