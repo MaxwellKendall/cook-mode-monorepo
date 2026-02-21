@@ -469,13 +469,8 @@ export async function registerSubscriptionRoutes(fastify: FastifyInstance) {
             );
             const priceId = subscriptionObj.items.data[0]?.price.id;
 
-            // Determine plan from price ID
-            let plan = 'basic';
-            if (priceId === process.env.STRIPE_PRICE_PRO) {
-              plan = 'pro';
-            } else if (priceId === process.env.STRIPE_PRICE_PREMIUM) {
-              plan = 'premium';
-            }
+            // Determine plan from price ID (only one paid tier: pro)
+            const plan = 'pro';
 
             if (userId) {
               await updateUserSubscription(userId, {

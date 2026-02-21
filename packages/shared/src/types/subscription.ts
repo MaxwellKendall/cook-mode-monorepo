@@ -1,30 +1,27 @@
-export type Plan = 'free' | 'basic' | 'pro';
+export type Plan = 'free' | 'pro';
 
 export interface PlanConfig {
   name: string;
-  allowance: number; // Cost budget in dollars
-  minutesEstimate: number; // Estimated minutes based on average usage
+  allowance: number; // Cost budget in dollars (voice cooking)
+  minutesEstimate: number; // Estimated voice minutes based on allowance
   pricePerMonth: number;
+  monthlyPlanLimit: number | null; // null = unlimited
 }
 
 export const PLAN_CONFIGS: Record<Plan, PlanConfig> = {
   free: {
     name: 'Free',
     allowance: 0.50,
-    minutesEstimate: 5,
+    minutesEstimate: 10,
     pricePerMonth: 0,
-  },
-  basic: {
-    name: 'Basic',
-    allowance: 3.00,
-    minutesEstimate: 30,
-    pricePerMonth: 5,
+    monthlyPlanLimit: 2,
   },
   pro: {
     name: 'Pro',
-    allowance: 15.00,
-    minutesEstimate: 150,
-    pricePerMonth: 20,
+    allowance: 6.00,
+    minutesEstimate: 60,
+    pricePerMonth: 8,
+    monthlyPlanLimit: null,
   },
 };
 
