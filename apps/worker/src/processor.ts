@@ -5,6 +5,7 @@ import { processVoiceTrack } from './operations/voice-track.js';
 import { processIngredientParse } from './operations/ingredient-parse.js';
 import { processMealPlanGenerate } from './operations/mealplan-generate.js';
 import { processWeeklyPlanGenerate } from './operations/weeklyplan-generate.js';
+import { processSingleMealGenerate } from './operations/singlemeal-generate.js';
 
 export async function processJob(job: Job<JobMessage>): Promise<void> {
   const { operation } = job.data;
@@ -28,6 +29,10 @@ export async function processJob(job: Job<JobMessage>): Promise<void> {
 
     case 'weeklyplan.generate':
       await processWeeklyPlanGenerate(job);
+      break;
+
+    case 'singlemeal.generate':
+      await processSingleMealGenerate(job);
       break;
 
     default:

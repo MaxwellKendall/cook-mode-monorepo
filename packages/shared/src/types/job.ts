@@ -3,7 +3,8 @@ export type JobOperationType =
   | 'voice.track'
   | 'ingredient.parse'
   | 'mealplan.generate'
-  | 'weeklyplan.generate';
+  | 'weeklyplan.generate'
+  | 'singlemeal.generate';
 
 export interface RecipeExtractPayload {
   url: string;
@@ -50,12 +51,45 @@ export interface WeeklyPlanGeneratePayload {
   preferences: WeeklyPlanPreferences;
 }
 
+export interface SingleMealGeneratePayload {
+  servings?: number;
+  dietary: string[];
+  freeText?: string;
+  excludeRecipeIds?: string[];
+  userId?: string;
+  anonymousSessionId?: string;
+}
+
+export interface SingleMealRecipe {
+  id: string;
+  title: string;
+  cookTime: number;
+  thumbnail?: string;
+}
+
+export interface SingleMealResult {
+  recipe: SingleMealRecipe;
+  reasoning: string;
+}
+
+export type SingleMealStage = 'finding_recipe' | 'completed' | 'failed';
+
+export interface SingleMealProgressMessage {
+  jobId: string;
+  stage: SingleMealStage;
+  progress: number;
+  message?: string;
+  result?: SingleMealResult;
+  error?: string;
+}
+
 export type JobPayload =
   | RecipeExtractPayload
   | VoiceTrackPayload
   | IngredientParsePayload
   | MealPlanGeneratePayload
-  | WeeklyPlanGeneratePayload;
+  | WeeklyPlanGeneratePayload
+  | SingleMealGeneratePayload;
 
 export interface JobOperation {
   type: JobOperationType;
