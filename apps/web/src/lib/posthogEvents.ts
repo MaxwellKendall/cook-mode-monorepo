@@ -34,6 +34,27 @@ export const POSTHOG_EVENTS = {
   mealPlanGenerated: 'mealPlanGenerated',
   mealPlanAccepted: 'mealPlanAccepted',
   mealPlanSaved: 'mealPlanSaved',
+
+  // Weekly Plan Wizard Events
+  // Funnel: weeklyPlanStarted → weeklyPlanGenerated → weeklyPlanSaved
+  weeklyPlanStarted: 'weeklyPlanStarted',           // user opens /plan preferences form
+  weeklyPlanGenerated: 'weeklyPlanGenerated',       // plan generation completed; props: { numDinners, dietary, servings }
+  weeklyPlanSaved: 'weeklyPlanSaved',               // plan saved after sign-up
+  weeklyPlanMealSwapped: 'weeklyPlanMealSwapped',   // meal swap triggered; props: { day }
+  weeklyPlanMealCooked: 'weeklyPlanMealCooked',     // meal marked as cooked; props: { day, mealsCooked, totalMeals }
+
+  // Grocery List Events
+  // Funnel: groceryListOpened → groceryItemChecked → groceryListCompleted
+  groceryListOpened: 'groceryListOpened',           // user opens grocery list page
+  groceryItemChecked: 'groceryItemChecked',         // item checked off; props: { checked, total }
+  groceryItemAdded: 'groceryItemAdded',             // manual item added
+  groceryListCompleted: 'groceryListCompleted',     // all items checked (100% progress)
+
+  // Gate Events
+  signupGateShown: 'signupGateShown',               // sign-up prompt shown; props: { trigger: 'save_plan' | 'check_item' }
+  signupGateConverted: 'signupGateConverted',       // user signed up from gate
+  upgradeGateShown: 'upgradeGateShown',             // upgrade prompt shown; props: { trigger: 'second_plan' | 'plan_history' | 'swap_limit' }
+  upgradeGateConverted: 'upgradeGateConverted',     // user upgraded from gate
 } as const
 
 // Type definitions for better type safety
