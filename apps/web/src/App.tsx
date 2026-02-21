@@ -17,6 +17,7 @@ import VoiceRecipeFlowPage from './pages/VoiceRecipeFlowPage'
 import PantryPage from './pages/PantryPage'
 import PlanWizardPage from './pages/PlanWizardPage'
 import GroceryListPage from './pages/GroceryListPage'
+import SingleMealPage from './pages/SingleMealPage'
 import AppLayout from './components/layout/AppLayout'
 import ProtectedRoute from './components/ProtectedRoute'
 import './App.css'
@@ -74,6 +75,14 @@ const AppRoutes = (): JSX.Element => {
         <Route
           path="/grocery/:id"
           element={<GroceryListPage />}
+        />
+        <Route
+          path="/meal"
+          element={
+            <AppLayout>
+              <SingleMealPage />
+            </AppLayout>
+          }
         />
         <Route
           path="/:recipeId"
