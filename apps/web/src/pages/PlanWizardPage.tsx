@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import PreferencesForm from '../components/plan/PreferencesForm';
+import GenerationProgress from '../components/plan/GenerationProgress';
 import { generateWeeklyPlan, type WeeklyPlanPreferences } from '../services/weeklyPlanService';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -66,6 +67,7 @@ const PlanWizardPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [jobId, setJobId] = useState<string | null>(null);
   const [preferences, setPreferences] = useState<WeeklyPlanPreferences | null>(null);
+  const [planResult, setPlanResult] = useState<unknown>(null);
 
   const anonymousSessionId = user ? undefined : getAnonymousSessionId();
 
@@ -125,19 +127,24 @@ const PlanWizardPage: React.FC = () => {
         <PreferencesForm onSubmit={handlePreferencesSubmit} isSubmitting={isSubmitting} />
       )}
 
-      {/* Step B: Generating (CUS-62) */}
+      {/* Step B: Generating */}
       {step === 'generating' && jobId && (
-        <div className="text-center py-16">
-          <div className="w-20 h-20 mx-auto bg-gradient-to-br from-orange-400 to-orange-600 rounded-2xl flex items-center justify-center mb-6">
-            <svg className="w-10 h-10 text-white animate-spin" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-            </svg>
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">Building Your Plan</h2>
-          <p className="text-gray-500">Searching recipes and putting together your week…</p>
-          <p className="text-xs text-gray-400 mt-3">Job ID: {jobId}</p>
-        </div>
+        <GenerationProgress
+          jobId={jobId}
+          onComplete={(result) => {
+            setPlanResult(result);
+            setStep('review');
+          }}
+          onError={(err) => {
+            setError(err);
+            setStep('generating'); // stay on step B to show error state inside component
+          }}
+          onRetry={() => {
+            setJobId(null);
+            setError(null);
+            setStep('preferences');
+          }}
+        />
       )}
 
       {/* Step C: Review (CUS-63) */}
