@@ -6,6 +6,7 @@ export const CHANNELS = {
   pantry: (jobId: string) => `pantry:${jobId}:progress`,
   mealplan: (jobId: string) => `mealplan:${jobId}:progress`,
   weeklyplan: (jobId: string) => `weeklyplan:${jobId}:progress`,
+  singlemeal: (jobId: string) => `singlemeal:${jobId}:progress`,
 
   // Patterns for subscribing
   patterns: {
@@ -16,5 +17,6 @@ export const CHANNELS = {
     pantry: 'pantry:*:progress',
     mealplan: 'mealplan:*:progress',
     weeklyplan: 'weeklyplan:*:progress',
+    singlemeal: 'singlemeal:*:progress',
   },
 } as const;

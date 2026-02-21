@@ -107,6 +107,15 @@ export const MealPlanSchema = z.object({
   later: MealPlanRecipeSchema,
 });
 
+export const SingleMealGeneratePayloadSchema = z.object({
+  servings: z.number().int().min(1).max(8).optional(),
+  dietary: z.array(z.string()),
+  freeText: z.string().optional(),
+  excludeRecipeIds: z.array(z.string().uuid()).optional(),
+  userId: z.string().uuid().optional(),
+  anonymousSessionId: z.string().optional(),
+});
+
 export const JobOperationSchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('recipe.extract'),
@@ -127,6 +136,10 @@ export const JobOperationSchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('weeklyplan.generate'),
     payload: WeeklyPlanGeneratePayloadSchema,
+  }),
+  z.object({
+    type: z.literal('singlemeal.generate'),
+    payload: SingleMealGeneratePayloadSchema,
   }),
 ]);
 
