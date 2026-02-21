@@ -16,6 +16,7 @@ import TagsPage from './pages/TagsPage'
 import VoiceRecipeFlowPage from './pages/VoiceRecipeFlowPage'
 import PantryPage from './pages/PantryPage'
 import PlanWizardPage from './pages/PlanWizardPage'
+import GroceryListPage from './pages/GroceryListPage'
 import AppLayout from './components/layout/AppLayout'
 import ProtectedRoute from './components/ProtectedRoute'
 import './App.css'
@@ -69,6 +70,10 @@ const AppRoutes = (): JSX.Element => {
               <PlanWizardPage />
             </AppLayout>
           }
+        />
+        <Route
+          path="/grocery/:id"
+          element={<GroceryListPage />}
         />
         <Route
           path="/:recipeId"
