@@ -70,9 +70,11 @@ export {
   toggleItem,
   addManualItem,
   removeItem,
+  bulkInsertItems,
   getGroceryListProgress,
   type CreateGroceryListInput,
   type AddManualItemInput,
+  type BulkInsertItemInput,
   type GroceryListWithItems,
   type GroceryListProgress,
 } from './repositories/grocery-lists.js';

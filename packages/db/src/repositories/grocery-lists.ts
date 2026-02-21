@@ -125,6 +125,35 @@ export async function removeItem(itemId: string): Promise<boolean> {
   return result.length > 0;
 }
 
+export interface BulkInsertItemInput {
+  groceryListId: string;
+  name: string;
+  quantity?: string;
+  category: string;
+  recipeAttributions?: Array<{ recipeId: string; title: string; day: number }>;
+  checked?: boolean;
+}
+
+export async function bulkInsertItems(items: BulkInsertItemInput[]): Promise<GroceryListItem[]> {
+  if (items.length === 0) return [];
+  const db = getDb();
+
+  return db
+    .insert(groceryListItems)
+    .values(
+      items.map((item) => ({
+        groceryListId: item.groceryListId,
+        name: item.name,
+        quantity: item.quantity,
+        category: item.category,
+        recipeAttributions: item.recipeAttributions ?? [],
+        checked: item.checked ?? false,
+        isManualAdd: false,
+      }))
+    )
+    .returning();
+}
+
 export async function getGroceryListProgress(listId: string): Promise<GroceryListProgress> {
   const db = getDb();
 
