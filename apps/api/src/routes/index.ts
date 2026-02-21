@@ -6,6 +6,7 @@ import { registerTagRoutes } from './tags.js';
 import { registerSubscriptionRoutes } from './subscriptions.js';
 import { registerJobRoutes } from './jobs.js';
 import { registerPantryRoutes } from './pantry.js';
+import { registerWeeklyPlanRoutes } from './weekly-plans.js';
 
 export async function registerRoutes(fastify: FastifyInstance) {
   // Register all route modules (routes define their own paths)
@@ -16,4 +17,5 @@ export async function registerRoutes(fastify: FastifyInstance) {
   await fastify.register(registerSubscriptionRoutes);
   await fastify.register(registerJobRoutes, { prefix: '/jobs' });
   await fastify.register(registerPantryRoutes);
+  await fastify.register(registerWeeklyPlanRoutes);
 }
