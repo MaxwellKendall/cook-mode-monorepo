@@ -110,7 +110,7 @@ const PlanReview: React.FC<PlanReviewProps> = ({ result, anonymousSessionId, onS
       )}
 
       {/* Week view */}
-      <WeekView meals={meals} swappingDay={swappingDay} onSwap={handleSwap} />
+      <WeekView meals={meals} swappingDay={swappingDay} onSwap={handleSwap} planId={result.weeklyPlanId} />
 
       {/* Grocery list */}
       {result.groceryItems.length > 0 && (
