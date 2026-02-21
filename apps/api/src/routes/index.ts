@@ -8,6 +8,7 @@ import { registerJobRoutes } from './jobs.js';
 import { registerPantryRoutes } from './pantry.js';
 import { registerWeeklyPlanRoutes } from './weekly-plans.js';
 import { registerGroceryListRoutes } from './grocery-lists.js';
+import { registerSingleMealRoutes } from './single-meal.js';
 
 export async function registerRoutes(fastify: FastifyInstance) {
   // Register all route modules (routes define their own paths)
@@ -20,4 +21,5 @@ export async function registerRoutes(fastify: FastifyInstance) {
   await fastify.register(registerPantryRoutes);
   await fastify.register(registerWeeklyPlanRoutes);
   await fastify.register(registerGroceryListRoutes);
+  await fastify.register(registerSingleMealRoutes);
 }
