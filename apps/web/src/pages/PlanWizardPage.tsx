@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import PreferencesForm from '../components/plan/PreferencesForm';
 import GenerationProgress from '../components/plan/GenerationProgress';
+import PlanReview, { type PlanResult } from '../components/plan/PlanReview';
 import { generateWeeklyPlan, type WeeklyPlanPreferences } from '../services/weeklyPlanService';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -67,7 +68,7 @@ const PlanWizardPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [jobId, setJobId] = useState<string | null>(null);
   const [preferences, setPreferences] = useState<WeeklyPlanPreferences | null>(null);
-  const [planResult, setPlanResult] = useState<unknown>(null);
+  const [planResult, setPlanResult] = useState<PlanResult | null>(null);
 
   const anonymousSessionId = user ? undefined : getAnonymousSessionId();
 
@@ -132,7 +133,7 @@ const PlanWizardPage: React.FC = () => {
         <GenerationProgress
           jobId={jobId}
           onComplete={(result) => {
-            setPlanResult(result);
+            setPlanResult(result as PlanResult);
             setStep('review');
           }}
           onError={(err) => {
@@ -147,12 +148,18 @@ const PlanWizardPage: React.FC = () => {
         />
       )}
 
-      {/* Step C: Review (CUS-63) */}
-      {step === 'review' && (
-        <div className="text-center py-16">
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">Your Plan is Ready</h2>
-          <p className="text-gray-500">Plan review coming in CUS-63.</p>
-        </div>
+      {/* Step C: Review */}
+      {step === 'review' && planResult && (
+        <PlanReview
+          result={planResult}
+          anonymousSessionId={anonymousSessionId}
+          onStartOver={() => {
+            setStep('preferences');
+            setJobId(null);
+            setPlanResult(null);
+            setError(null);
+          }}
+        />
       )}
     </div>
   );
